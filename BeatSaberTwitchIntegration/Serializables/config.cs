@@ -15,8 +15,11 @@ namespace TwitchIntegrationPlugin.Serializables
         public bool ContinueQueue;
         public bool Randomize;
         public int RandomizeLimit;
+        public bool BlockMultiRandomQueue;
+        public bool OverrideSongInMultiQueue;
+        public bool EnableShadowQueue;
 
-        public Config(bool modonly, bool subonly, int viewerlimit, int sublimit, bool continuequeue, bool randomize, int randomizelimit)
+        public Config(bool modonly, bool subonly, int viewerlimit, int sublimit, bool continuequeue, bool randomize, int randomizelimit, bool blockMultiRandomQueue, bool overrideSongInMultiQueue, bool enableShadowQueue)
         {
             ModOnly = modonly;
             SubOnly = subonly;
@@ -25,6 +28,9 @@ namespace TwitchIntegrationPlugin.Serializables
             ContinueQueue = continuequeue;
             Randomize = randomize;
             RandomizeLimit = randomizelimit;
+            BlockMultiRandomQueue = blockMultiRandomQueue;
+            OverrideSongInMultiQueue = overrideSongInMultiQueue;
+            EnableShadowQueue = enableShadowQueue;
         }
 
         public void SaveJson()
@@ -56,7 +62,7 @@ namespace TwitchIntegrationPlugin.Serializables
 
         public static void CreateDefaultConfig()
         {
-            new Config(false, false, 3, 5, true, false, 0).SaveJson();
+            new Config(false, false, 1, 3, true, false, 3, false, false, false).SaveJson();
         }
 
         public override string ToString()

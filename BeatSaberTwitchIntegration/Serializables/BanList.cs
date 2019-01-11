@@ -1,9 +1,12 @@
-﻿using System;
+﻿using AsyncTwitch;
+using SimpleJSON;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.Serializables
 {
@@ -54,46 +57,69 @@ namespace TwitchIntegrationPlugin.Serializables
 
         public void SaveBanList()
         {
-            using (FileStream fs = new FileStream("UserData/TwitchIntegrationBans.json", FileMode.OpenOrCreate,
-                FileAccess.ReadWrite))
+            try
             {
-                if (File.Exists("UserData/TwitchIntegrationBans.json"))
+                using (FileStream fs = new FileStream("UserData/TwitchIntegrationBans.json", FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite))
                 {
-                    byte[] readBuffer = new byte[fs.Length];
-                    fs.Read(readBuffer, 0, readBuffer.Length);
-                    BanList tempList = JsonUtility.FromJson<BanList>(Encoding.ASCII.GetString(readBuffer));
-
-                    foreach (string bannedSong in tempList.GetBanList())
+                    if (File.Exists("UserData/TwitchIntegrationBans.json"))
                     {
-                        if (!_bannedSongs.Contains(bannedSong))
+                        byte[] readBuffer = new byte[fs.Length];
+                        fs.Read(readBuffer, 0, readBuffer.Length);
+
+                        // Added a check to Length to avoid the mod hanging when trying to read an Empty File
+                        if (fs.Length != 0)
                         {
-                            _bannedSongs.Add(bannedSong);
+                            List<string> tempList = new List<string>();
+                            string bannedSongString = Encoding.ASCII.GetString(readBuffer);
+                            tempList = JsonUtility.FromJson<BanList>(bannedSongString).GetBanList(); ;
+                            foreach (string bannedSong in tempList)
+                            {
+                                if (!_bannedSongs.Contains(bannedSong))
+                                {
+                                    _bannedSongs.Add(bannedSong);
+                                }
+                            }
                         }
                     }
-                }
 
-                byte[] buffer = Encoding.ASCII.GetBytes(JsonUtility.ToJson(this, true));
-                fs.Write(buffer, 0, buffer.Length);
+                    // We Set length to zero to wipe the file clean.
+                    // There was an issue with duplicates being written and I couldn't debug correctly at 2AM
+                    fs.SetLength(0);
+                    byte[] buffer = Encoding.ASCII.GetBytes(JsonUtility.ToJson(this, true));
+                    fs.Write(buffer, 0, buffer.Length);
+                    fs.Flush();
+                }
+            } catch (Exception e)
+            {
+                Logger.Error("Error saving Banlist. " + e.Message);
             }
         }
 
-        public void LoadBanList()
+        public void LoadBanList(string filePath)
         {
-            using (FileStream fs = new FileStream("UserData/TwitchIntegrationBans.json", FileMode.OpenOrCreate,
-                FileAccess.ReadWrite))
+            try
             {
-                //Lets reset our list before we load.
-                _bannedSongs = new List<string>();
+                using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite))
+                {
+                    //Lets reset our list before we load.
+                    _bannedSongs = new List<string>();
 
-                //It didn't exist or there are no bans.
-                if (fs.Length == 0) return;
-                byte[] bannedSongBytes = new byte[fs.Length];
+                    //It didn't exist or there are no bans.
+                    if (fs.Length == 0) return;
+                    byte[] bannedSongBytes = new byte[fs.Length];
 
-                //This imposes a limit of 2,147,483,647 characters. Enough to not worry hopefully.
-                fs.Read(bannedSongBytes, 0, (int)fs.Length);
+                    //This imposes a limit of 2,147,483,647 characters. Enough to not worry hopefully.
+                    fs.Read(bannedSongBytes, 0, (int)fs.Length);
 
-                string bannedSongString = Encoding.ASCII.GetString(bannedSongBytes);
-                _bannedSongs = JsonUtility.FromJson<BanList>(bannedSongString).GetBanList();
+                    string bannedSongString = Encoding.ASCII.GetString(bannedSongBytes);
+                    _bannedSongs = JsonUtility.FromJson<BanList>(bannedSongString).GetBanList();
+                    fs.Flush();
+                }
+            } catch(Exception e)
+            {
+                Logger.Error("Error loading Banlist(" + filePath + "). " + e.Message);
             }
         }
 

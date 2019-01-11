@@ -2,316 +2,238 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using AsyncTwitch;
+using CustomUI.BeatSaber;
+using CustomUI.GameplaySettings;
+using CustomUI.MenuButton;
+using CustomUI.Settings;
+using CustomUI.Utilities;
 using HMUI;
 using JetBrains.Annotations;
 using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
 using TMPro;
+using TwitchIntegrationPlugin.Commands;
+using TwitchIntegrationPlugin.Serializables;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using VRUI;
-using Image = UnityEngine.UI.Image;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.UI
 {
     public class TwitchIntegrationUi : MonoBehaviour
     {
-        #region Static UI Components
-        public static MenuSceneSetupDataSO MenuSceneSetupData;
-        public static PlayerDataModelSO PlayerDataModel;
-        public static PlatformLeaderboardsModel PlatformLeaderboardsModel;
-        public static PlatformLeaderboardViewController PlatformLeaderboardViewController;
-        public static DismissableNavigationController NavigationController;
-        public static BeatmapDifficultyViewController DifficultyViewController;
-        public static GameplaySetupViewController SetupViewController;
-        public static MainMenuViewController MainMenuViewController;
-        public static StandardLevelDetailViewController LevelDetailViewController;
-        public static GameplaySetupViewController GameplaySetupViewController;
-        public static RequestInfoViewController RequestInfoViewController;
-        public static PracticeViewController PracticeViewController;
-        public static ResultsViewController ResultsViewController;
-        public static MainFlowCoordinator MainFlowCoordinator;
-        #endregion
-
-        public LevelRequestFlowCoordinatorNew LevelRequestFlowCoordinator { get; set; }
-        
-        private RectTransform _mainMenuRectTransform;
-        private Button _buttonInstance;
-        private Button _backButtonInstance;
-        private GameObject _loadingIndicatorInstance;
-        private NLog.Logger _logger;
-
         public static TwitchIntegrationUi Instance;
-        public static List<Sprite> Icons = new List<Sprite>();
-        public static Dictionary<string, Sprite> CachedSprites = new Dictionary<string, Sprite>();
+
+        // UI Controllers/Coordinators
+        private MainMenuViewController _mainMenuViewController;
+        private RectTransform _mainMenuRectTransform;
+        private LevelListViewController _levelListViewController;
+        private BeatmapCharacteristicSO[] _beatmapCharacteristics;
+        private BeatmapCharacteristicSO _lastCharacteristic;
+
+        // Buttons for UI
+        private Button _twitchButton;
+
+        // Variables for future processing
+        private static TwitchMessage _internalTwitchMessage;
+        private bool _twitchSubOnly = false;
 
         internal static void OnLoad()
         {
-            if (Instance != null) return;
+            if (Instance != null)
+            {
+                Instance.CreateUI();
+                return;
+            }
             new GameObject("TwitchIntegration UI").AddComponent<TwitchIntegrationUi>();
+            _internalTwitchMessage = new TwitchMessage();
+            _internalTwitchMessage.Author.IsBroadcaster = true;
+            _internalTwitchMessage.Author.IsMod = true;
         }
 
         [UsedImplicitly]
         private void Awake()
         {
-            _logger = NLog.LogManager.GetCurrentClassLogger();
-            Instance = this;
-            _logger.Trace("Waking up.");
-            
-            foreach (Sprite sprite in Resources.FindObjectsOfTypeAll<Sprite>())
+            if (Instance != this)
             {
-                Icons.Add(sprite);
-            }
-
-            try
-            {
-                FindUIComponents();
-                _logger.Trace("Adding buttons.");
-                _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
-                _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "BackArrowButton"));
-                _mainMenuRectTransform = _buttonInstance.transform.parent.parent as RectTransform;
-                //_loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().First(x => x.name == "LoadingIndicator");
-                
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-
-            try
-            {
-                CreateTwitchModeButton();
-                CreateDebugButton();
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-
-        }
-
-        private void CreateTwitchModeButton()
-        {
-            Button twitchModeButton = CreateUiButton(_mainMenuRectTransform, "QuitButton");
-
-            try
-            {
-                ((RectTransform) twitchModeButton.transform).anchoredPosition = new Vector2(20f, 60f);
-                ((RectTransform) twitchModeButton.transform).sizeDelta = new Vector2(34f, 10f);
-                SetButtonText(ref twitchModeButton, (StaticData.TwitchMode) ? "Twitch Mode: ON" : "Twitch Mode: OFF");
-                twitchModeButton.onClick = new Button.ButtonClickedEvent();
-
-                twitchModeButton.onClick.AddListener(() => TwitchModeListener(twitchModeButton));
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
+                DontDestroyOnLoad(this);
+                Instance = this;
+                SongLoader.SongsLoadedEvent += SongsLoaded;
+                CreateUI();
             }
         }
 
-        private void CreateDebugButton()
+        public void SongsLoaded(SongLoader sender, List<CustomLevel> levels)
         {
-            Button queueButton = CreateUiButton(_mainMenuRectTransform, "QuitButton");
-
-            try
+            if (_twitchButton != null)
             {
-                ((RectTransform)queueButton.transform).anchoredPosition = new Vector2(53f, 60f);
-                ((RectTransform)queueButton.transform).sizeDelta = new Vector2(30f, 10f);
-                SetButtonText(ref queueButton, "Request Queue");
-                queueButton.onClick = new Button.ButtonClickedEvent();
-
-                queueButton.onClick.AddListener(() => QueueButtonListener());
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-        }
-
-        public void QueueButtonListener()
-        {
-            _logger.Debug("Clicked");
-            /*try
-            {
-                if (LevelRequestFlowCoordinator == null)
-                {
-                    _logger.Trace("Creating LevelRequestFlowCoordinator");
-                    LevelRequestFlowCoordinator = new GameObject("Twitch Integration Coordinator").AddComponent<LevelRequestFlowCoordinatorNew>();
-                }
-                _logger.Trace("presenting.");
-                MainFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] {LevelRequestFlowCoordinator, null, false, false });
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }*/
-        }
-
-        public void TwitchModeListener(Button twitchModeButton)
-        {
-            StaticData.TwitchMode = !StaticData.TwitchMode;
-            if (StaticData.TwitchMode)
-            {
-                SetButtonText(ref twitchModeButton, "Twitch Mode: ON");
+                _twitchButton.interactable = true;
             }
             else
             {
-                SetButtonText(ref twitchModeButton, "Twitch Mode: OFF");
+                CreateUI();
             }
         }
 
-        public Button CreateBackButton(RectTransform parent)
+        public void CreateUI()
         {
-            if (_backButtonInstance == null)
+            try
             {
-                return null;
+                _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
+                _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
+
+                CreateTwitchButton();
+                CreateSubMenuItems();
+
+                _twitchButton.interactable = SongLoader.AreSongsLoaded;
             }
-
-            Button button = Instantiate(_backButtonInstance, parent, false);
-            DestroyImmediate(button.GetComponent<SignalOnUIButtonClick>());
-            button.onClick = new Button.ButtonClickedEvent();
-
-            return button;
-        }
-
-        public GameObject CreateLoadingIndicator(Transform parent)
-        {
-            return Instantiate(_loadingIndicatorInstance, parent, false);
-        }
-
-        public Button CreateUiButton(RectTransform parent, string buttonTemplate)
-        {
-            if (_buttonInstance == null)
+            catch (Exception e)
             {
-                return null;
-            }
-
-            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == buttonTemplate)), parent, false);
-            DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
-            btn.onClick = new Button.ButtonClickedEvent();
-
-            return btn;
-        }
-
-        public static T CreateViewController<T>(string objName) where T : VRUIViewController
-        {
-            T vc = new GameObject(objName).AddComponent<T>();
-
-            vc.rectTransform.anchorMin = new Vector2(0f, 0f);
-            vc.rectTransform.anchorMax = new Vector2(1f, 1f);
-            vc.rectTransform.sizeDelta = new Vector2(0f, 0f);
-            vc.rectTransform.anchoredPosition = new Vector2(0f, 0f);
-
-            return vc;
-        }
-
-        public TextMeshProUGUI CreateText(RectTransform parent, string text, Vector2 position)
-        {
-            TextMeshProUGUI textMesh = new GameObject("TextMeshProUGUI_GO").AddComponent<TextMeshProUGUI>();
-            textMesh.rectTransform.SetParent(parent, false);
-            textMesh.text = text;
-            textMesh.fontSize = 4;
-            textMesh.color = Color.white;
-            textMesh.font = Resources.Load<TMP_FontAsset>("Teko-Medium SDF No Glow");
-            textMesh.rectTransform.anchorMin = new Vector2(0.5f, 1f);
-            textMesh.rectTransform.anchorMax = new Vector2(0.5f, 1f);
-            textMesh.rectTransform.sizeDelta = new Vector2(0f, 0f);
-            textMesh.rectTransform.anchoredPosition = position;
-            textMesh.alignment = TextAlignmentOptions.Center;
-            return textMesh;
-        }
-
-        public void SetButtonText(ref Button button, string text)
-        {
-            if (button.GetComponentInChildren<TextMeshProUGUI>() != null)
-            {
-                button.GetComponentInChildren<TextMeshProUGUI>().text = text;
+                Logger.Exception($"Unable to create UI! Exception: {e}");
             }
         }
 
-        public void SetButtonTextSize(ref Button button, float fontSize)
+        private void CreateSubMenuItems()
         {
-            if (button.GetComponentInChildren<TextMeshProUGUI>() != null)
+            var trb1Menu = GameplaySettingsUI.CreateSubmenuOption(GameplaySettingsPanels.PlayerSettingsRight, "Twitch Queue Bot", "MainMenu", "TRB1", "Twitch Queue Bot Options", null);
+
+            CreateNextButton();
+            CreateRandomizeButton();
+            //CreateSongToTopButton();
+            CreateSubOnlyButton();
+            CreateClearQueueButton();
+            CreateBanSongButton();
+
+            _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
+            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
+            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
+            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
+        }
+
+        string lvlData = null;
+        private void _levelListViewController_didSelectLevelEvent(LevelListViewController levelListView, IBeatmapLevel selectedLevel)
+        {
+            lvlData = selectedLevel.levelID.Substring(0, Math.Min(32, selectedLevel.levelID.Length));
+        }
+
+        private void CreateTwitchButton()
+        {
+            _twitchButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton", new Vector2(20f, 70f), new Vector2(34f, 10f));
+            (_twitchButton.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
+            (_twitchButton.transform as RectTransform).anchorMax = new Vector2(0f, 0f);
+
+            _twitchButton.SetButtonText((StaticData.TwitchMode) ? "Twitch Mode: ON" : "Twitch Mode: OFF");
+            _twitchButton.onClick.AddListener(delegate ()
             {
-                button.GetComponentInChildren<TextMeshProUGUI>().fontSize = fontSize;
+                StaticData.TwitchMode = !StaticData.TwitchMode;
+                if (StaticData.TwitchMode)
+                {
+                    _twitchButton.SetButtonText("Twitch Mode: ON");
+                }
+                else
+                {
+                    _twitchButton.SetButtonText("Twitch Mode: OFF");
+                }
+            });
+        }
+
+        private void CreateNextButton()
+        {
+            var nextSongOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Next Song", "TRB1", "", null);
+            nextSongOption.OnToggle += (value) =>
+            {
+                NextSongCommand nsc = new NextSongCommand();
+                nsc.Run(_internalTwitchMessage);
+            };
+
+        }
+
+        private void CreateRandomizeButton()
+        {
+            if (StaticData.Config.Randomize)
+            {
+                var randomizeOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Randomize List", "TRB1", "", null);
+                randomizeOption.OnToggle += (value) =>
+                {
+                    RandomizeCommand rndmc = new RandomizeCommand();
+                    rndmc.Run(_internalTwitchMessage);
+                };
             }
         }
 
-        public void SetButtonIcon(ref Button button, Sprite icon)
+        //private void CreateSongToTopButton()
+        //{
+        //    _randomizeBtn = _customListViewController.CreateUIButton("QuitButton", new Vector2(-50f, 6f), new Vector2(20f, 6f));
+        //    _randomizeBtn.SetButtonText("Move Song to Top");
+        //    _randomizeBtn.SetButtonTextSize(2.5f);
+        //    _randomizeBtn.ToggleWordWrapping(false);
+        //    _randomizeBtn.interactable = StaticData.Config.Randomize;
+        //    _randomizeBtn.onClick.AddListener(delegate ()
+        //    {
+        //        MoveSongsToTopCommand msttc = new MoveSongsToTopCommand();
+        //        _internalTwitchMessage.Content = _selectedSongID;
+        //        msttc.Run(_internalTwitchMessage);
+        //        //_customListViewController.Data = RefreshEntireQueue();
+        //        _customListViewController._customListTableView.ReloadData();
+        //    });
+        //}
+
+        private void CreateSubOnlyButton()
         {
-            if (button.GetComponentsInChildren<Image>().Count() > 1)
+            var subOnlyOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Sub Only Chat", "TRB1", "", null);
+            subOnlyOption.GetValue = _twitchSubOnly;
+            subOnlyOption.OnToggle += (bool value) =>
             {
-                button.GetComponentsInChildren<Image>()[1].sprite = icon;
-            }
+                if (!_twitchSubOnly)
+                {
+                    TwitchConnection.Instance.SendChatMessage("/subscribers");
+                    _twitchSubOnly = value;
+                }
+                else
+                {
+                    TwitchConnection.Instance.SendChatMessage("/subscribersoff");
+                    _twitchSubOnly = value;
+                }
+            };
         }
 
-        public void SetButtonBackground(ref Button button, Sprite background)
+        private void CreateClearQueueButton()
         {
-            if (button.GetComponentsInChildren<Image>().Any())
+            var clearAllOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Clear All Songs", "TRB1", "", null);
+            clearAllOption.OnToggle += (value) =>
             {
-                button.GetComponentsInChildren<Image>()[0].sprite = background;
-            }
+                ClearQueueCommand cqc = new ClearQueueCommand();
+                cqc.Run(_internalTwitchMessage);
+            };
         }
 
-        public static IEnumerator LoadSprite(string spritePath, TableCell obj)
+        private void CreateBanSongButton()
         {
-            if (CachedSprites.ContainsKey(spritePath))
+            var banSongOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Ban Currently selected Song", "TRB1", "", null);
+            banSongOption.OnToggle += (value) =>
             {
-                obj.GetComponentsInChildren<Image>()[2].sprite = CachedSprites[spritePath];
-                yield break;
-            }
+                string keyToBan = "";
+                int rowNum = 0;
+                foreach(Song s in StaticData.SongQueue.SongQueueList)
+                {
+                    if (s.hash.Equals(lvlData))
+                    {
+                        keyToBan = s.id;
+                        break;
+                    }
+                    rowNum++;
+                }
 
-            using (WWW www = new WWW(spritePath))
-            {
-                yield return www;
-                Texture2D tex = www.texture;
-                Sprite newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f, 100, 1);
-                CachedSprites.Add(spritePath, newSprite);
-                obj.GetComponentsInChildren<Image>()[2].sprite = newSprite;
-            }
-        }
+                _internalTwitchMessage.Content = keyToBan;
+                StaticData.SongQueue.SongQueueList.RemoveAt(rowNum);
+                BanSongCommand bsc = new BanSongCommand();
+                bsc.Run(_internalTwitchMessage);
 
-
-
-        public static void FindUIComponents()
-        {
-            MenuSceneSetupData = null;
-            PlayerDataModel = null;
-            PlatformLeaderboardsModel = null;
-            NavigationController = null;
-            DifficultyViewController = null;
-            SetupViewController = null;
-            MainMenuViewController = null;
-            LevelDetailViewController = null;
-            PlatformLeaderboardViewController = null;
-            GameplaySetupViewController = null;
-            PracticeViewController = null;
-            ResultsViewController = null;
-            MainFlowCoordinator = null;
-
-            if (RequestInfoViewController == null)
-            {
-                RequestInfoViewController = CreateViewController<RequestInfoViewController>("RequestController");
-                RequestInfoViewController.rectTransform.anchorMin = new Vector2(0.3f, 0f);
-                RequestInfoViewController.rectTransform.anchorMax = new Vector2(0.7f, 1f);
-            }
-
-            foreach (GameObject rootGameObject in SceneManager.GetSceneByName("menu").GetRootGameObjects())
-            {
-                MenuSceneSetupData = MenuSceneSetupData ?? rootGameObject.GetComponentInChildren<MenuSceneSetupDataSO>();
-                PlayerDataModel = PlayerDataModel ?? rootGameObject.GetComponentInChildren<PlayerDataModelSO>();
-                PlatformLeaderboardsModel = PlatformLeaderboardsModel ?? rootGameObject.GetComponentInChildren<PlatformLeaderboardsModel>();
-                NavigationController = NavigationController ?? rootGameObject.GetComponentInChildren<DismissableNavigationController>();
-                DifficultyViewController = DifficultyViewController ?? rootGameObject.GetComponentInChildren<BeatmapDifficultyViewController>();
-                SetupViewController = SetupViewController ?? rootGameObject.GetComponentInChildren<GameplaySetupViewController>();
-                MainMenuViewController = MainMenuViewController ?? rootGameObject.GetComponentInChildren<MainMenuViewController>();
-                LevelDetailViewController = LevelDetailViewController ?? rootGameObject.GetComponentInChildren<StandardLevelDetailViewController>();
-                PlatformLeaderboardViewController = PlatformLeaderboardViewController ?? rootGameObject.GetComponentInChildren<PlatformLeaderboardViewController>();
-                GameplaySetupViewController = GameplaySetupViewController ?? rootGameObject.GetComponentInChildren<GameplaySetupViewController>();
-                PracticeViewController = PracticeViewController ?? rootGameObject.GetComponentInChildren<PracticeViewController>();
-                ResultsViewController = ResultsViewController ?? rootGameObject.GetComponentInChildren<ResultsViewController>();
-                MainFlowCoordinator = MainFlowCoordinator ?? rootGameObject.GetComponentInChildren<MainFlowCoordinator>();
-            }
+                SongLoader.Instance.RefreshSongs();
+                RequestUIController.Instance.SetLevels(_lastCharacteristic);
+            };
         }
     }
 }

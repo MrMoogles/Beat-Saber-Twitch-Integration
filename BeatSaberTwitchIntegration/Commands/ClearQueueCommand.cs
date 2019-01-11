@@ -10,7 +10,7 @@ namespace TwitchIntegrationPlugin.Commands
         public override void Run(TwitchMessage msg)
         {
             if (!msg.Author.IsMod && !msg.Author.IsBroadcaster) return;
-            StaticData.SongQueue.SongQueueList = new List<QueuedSong>();
+            StaticData.SongQueue.SongQueueList = new List<Song>();
             StaticData.UserRequestCount = new Dictionary<string, int>();
             TwitchConnection.Instance.SendChatMessage("Queue cleared!");
         }

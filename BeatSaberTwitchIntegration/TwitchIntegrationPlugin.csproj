@@ -44,106 +44,70 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="APIConnection.cs" />
     <Compile Include="BeatBotNew.cs" />
-    <Compile Include="BeatSaver.cs" />
     <Compile Include="Commands\BanSongCommand.cs" />
     <Compile Include="Commands\AddToQueueCommand.cs" />
     <Compile Include="Commands\ClearQueueCommand.cs" />
+    <Compile Include="Commands\ClearUsersCommand.cs" />
     <Compile Include="Commands\IrcCommand.cs" />
+    <Compile Include="Commands\MoveSongsToTopCommand.cs" />
+    <Compile Include="Commands\MoveUsersSongToTopCommand.cs" />
+    <Compile Include="Commands\NextSongCommand.cs" />
     <Compile Include="Commands\PatCommand.cs" />
     <Compile Include="Commands\PrintBanListCommand.cs" />
     <Compile Include="Commands\PrintQueueCommand.cs" />
+    <Compile Include="Commands\RandomizeCommand.cs" />
     <Compile Include="Commands\RemoveFromQueueCommand.cs" />
     <Compile Include="Commands\SaveQueueCommand.cs" />
+    <Compile Include="Commands\UnbanCommand.cs" />
+    <Compile Include="Misc\Logger.cs" />
+    <Compile Include="UI\RequestUIController.cs" />
     <Compile Include="Serializables\BanList.cs" />
-    <Compile Include="Serializables\config.cs" />
+    <Compile Include="Serializables\BeatSaverAPIResult.cs" />
+    <Compile Include="Serializables\Config.cs" />
     <Compile Include="Serializables\SongQueue.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Checksum\Adler32.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Checksum\BZip2Crc.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Checksum\Crc32.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Checksum\IChecksum.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\FileSystemScanner.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\INameTransform.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\IScanFilter.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\NameFilter.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\PathFilter.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\StreamUtils.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Core\WindowsPathUtils.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\SharpZipBaseException.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Deflater.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\DeflaterConstants.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\DeflaterEngine.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\DeflaterHuffman.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\DeflaterPending.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Inflater.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\InflaterDynHeader.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\InflaterHuffmanTree.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\PendingBuffer.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Streams\DeflaterOutputStream.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Streams\InflaterInputStream.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Streams\OutputWindow.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\Compression\Streams\StreamManipulator.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\FastZip.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\IEntryFactory.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\WindowsNameTransform.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipConstants.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipEntry.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipEntryFactory.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipException.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipExtraData.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipFile.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipHelperStream.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipInputStream.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipNameTransform.cs" />
-    <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipOutputStream.cs" />
-    <Compile Include="MonoWebUtil\Helpers.cs" />
-    <Compile Include="MonoWebUtil\HttpEncoder.cs" />
-    <Compile Include="MonoWebUtil\HttpUtility.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Serializables\QueuedSong.cs" />
+    <Compile Include="Misc\SongDownloader.cs" />
     <Compile Include="StaticData.cs" />
     <Compile Include="TwitchIntegrationPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\LevelRequestFlowCoordinatorNew.cs" />
-    <Compile Include="UI\RequestInfoViewController.cs" />
     <Compile Include="UI\TwitchIntegrationUI.cs" />
-    <Compile Include="UI\LevelRequestNavigationController.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.snk" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="AsyncTwitch, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Plugins\AsyncTwitch.dll</HintPath>
     </Reference>
+    <Reference Include="BeatSaberCustomUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Plugins\BeatSaberCustomUI.dll</HintPath>
+    </Reference>
+    <Reference Include="BeatSaverDownloader, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Plugins\BeatSaverDownloader.dll</HintPath>
+    </Reference>
     <Reference Include="IllusionInjector">
-      <HintPath>..\..\Resources\IllusionInjector.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="IllusionPlugin">
-      <HintPath>..\..\Resources\IllusionPlugin.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="NLog">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\NLog.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="SongLoaderPlugin, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
@@ -159,58 +123,64 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
     <Reference Include="TextMeshPro-1.0.55.2017.1.0b12">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Beat Saber_Data\Managed\TextMeshPro-1.0.55.2017.1.0b12.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\TextMeshPro-1.0.55.2017.1.0b12.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\Resources\UnityEngine.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\Resources\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
-      <HintPath>..\..\Resources\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.Networking">
-      <HintPath>..\..\Resources\UnityEngine.Networking.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.Networking.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Resources\UnityEngine.UI.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
-      <HintPath>..\..\Resources\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\..\Resources\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-      <HintPath>D:\SteamLibrary\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

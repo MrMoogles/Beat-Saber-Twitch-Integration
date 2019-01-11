@@ -3,95 +3,106 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SimpleJSON;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.Serializables
 {
     [Serializable]
     public class SongQueue
     {
-
-        public List<QueuedSong> SongQueueList;
-
+        public List<Song> SongQueueList;
 
         public SongQueue()
         {
-            SongQueueList = new List<QueuedSong>();
+            SongQueueList = new List<Song>();
         }
 
         public void SaveSongQueue()
         {
-            using (FileStream fs = new FileStream("UserData/TwitchIntegrationSavedQueue.json", FileMode.Create, FileAccess.Write))
+            try
             {
-                JSONNode arrayNode = new JSONArray();
-                foreach (QueuedSong queuedSong in SongQueueList)
+                using (FileStream fs = new FileStream("UserData/TwitchIntegrationSavedQueue.json", FileMode.Create, FileAccess.Write))
                 {
-                    arrayNode.Add(queuedSong.ToJsonNode());
-                }
+                    JSONNode arrayNode = new JSONArray();
+                    foreach (Song queuedSong in SongQueueList)
+                    {
+                        arrayNode.Add(queuedSong.ToJsonNode());
+                    }
 
-                byte[] buffer = Encoding.ASCII.GetBytes(arrayNode.ToString());
-                fs.Write(buffer, 0, buffer.Length);
+                    byte[] buffer = Encoding.ASCII.GetBytes(arrayNode.ToString());
+                    fs.Write(buffer, 0, buffer.Length);
+                    fs.Flush();
+                }
+            } catch(Exception e)
+            {
+                Logger.Error("Error saving SongQueue. " + e.Message);
             }
         }
 
         public void LoadSongQueue()
         {
-            using (FileStream fs = new FileStream("UserData/TwitchIntegrationSavedQueue.json", FileMode.OpenOrCreate,
-                FileAccess.ReadWrite))
+            try
             {
-                if (fs.Length == 0) return;
-                byte[] readBuffer = new byte[fs.Length];
-                fs.Read(readBuffer, 0, (int) fs.Length);
-                string readString = Encoding.ASCII.GetString(readBuffer);
-                JSONNode node = JSON.Parse(readString);
-
-                foreach (KeyValuePair<string, JSONNode> queuedSong in node)
+                using (FileStream fs = new FileStream("UserData/TwitchIntegrationSavedQueue.json", FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite))
                 {
-                    QueuedSong song = QueuedSong.FromJsonNode(queuedSong.Value);
-                    SongQueueList.Add(song);
+                    if (fs.Length == 0) return;
+                    byte[] readBuffer = new byte[fs.Length];
+                    fs.Read(readBuffer, 0, (int)fs.Length);
+                    string readString = Encoding.ASCII.GetString(readBuffer);
+                    JSONNode node = JSON.Parse(readString);
+
+                    foreach (var songNode in node.Values)
+                    {
+                        Song song = Song.FromSearchNode(songNode);
+                        SongQueueList.Add(song);
+                    }
+                    fs.Flush();
                 }
+            } catch(Exception e)
+            {
+                Logger.Error("Error loading stored SongQueue. " + e.Message);
             }
         }
 
-        public void AddSongToQueue(QueuedSong song)
+        public void AddSongToQueue(Song song)
         {
             SongQueueList.Add(song);
         }
 
-        public QueuedSong PopQueuedSong()
+        public Song PopQueuedSong()
         {
-            QueuedSong returnSong = SongQueueList[0];
+            Song returnSong = SongQueueList[0];
             SongQueueList.RemoveAt(0);
             try
             {
-                if (StaticData.UserRequestCount.ContainsKey(returnSong.RequestedBy))
-                    StaticData.UserRequestCount[returnSong.RequestedBy]--;
+                if (StaticData.UserRequestCount.ContainsKey(returnSong.requestedBy))
+                    StaticData.UserRequestCount[returnSong.requestedBy]--;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
 
-
-            
-
             return returnSong;
         }
 
-        public QueuedSong PeekQueuedSong()
+        public Song PeekQueuedSong()
         {
             return SongQueueList[0];
         }
 
-        public void RemoveSongFromQueue(QueuedSong song)
+        public void RemoveSongFromQueue(Song song)
         {
-            if(StaticData.UserRequestCount.ContainsKey(song.RequestedBy))
-                StaticData.UserRequestCount[song.RequestedBy]--;
+            if(StaticData.UserRequestCount.ContainsKey(song.requestedBy))
+                StaticData.UserRequestCount[song.requestedBy]--;
             SongQueueList.Remove(song);
+            Logger.Log("Removing song from Queue: " + song.songName);
         }
 
-        public bool IsSongInQueue(QueuedSong song)
+        public bool IsSongInQueue(Song song)
         {
-            return SongQueueList.Exists(x => x.Id == song.Id);
+            return SongQueueList.Exists(x => x.id == song.id);
         }
 
         public bool DoesQueueHaveSongs()
@@ -99,7 +110,7 @@ namespace TwitchIntegrationPlugin.Serializables
             return SongQueueList.Count != 0;
         }
 
-        public List<QueuedSong> GetSongList()
+        public List<Song> GetSongList()
         {
             return SongQueueList;
         }

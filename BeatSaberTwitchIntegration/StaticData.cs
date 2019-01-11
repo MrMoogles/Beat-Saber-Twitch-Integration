@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using BeatSaverDownloader.Misc;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using TwitchIntegrationPlugin.Serializables;
 
 namespace TwitchIntegrationPlugin
@@ -11,11 +8,12 @@ namespace TwitchIntegrationPlugin
     {
         public static bool TwitchMode = false;
         public static SongQueue SongQueue = new SongQueue();
+        public static SongQueue AlreadyPlayed = new SongQueue();
         public static BanList BanList = new BanList();
+        public static BanList ShadowBanList = new BanList();
+        public static List<string> UserPickedByRandomize = new List<string>();
         public static Dictionary<string, int> UserRequestCount = new Dictionary<string, int>();
-        public static Config Config = new Config(false, false, 0, 0, false, false, 0);
-        public static bool DidStartFromQueue = false;
-        public static LevelCompletionResults LastLevelCompletionResults;
-        public static IDifficultyBeatmap LastLevelPlayed;
+        public static Config Config = new Config(false, false, 1, 3, true, false, 3, false, false, false);
+        public static string BeatSaverURL = "https://beatsaver.com";
     }
 }
