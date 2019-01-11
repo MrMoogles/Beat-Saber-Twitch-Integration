@@ -51,7 +51,6 @@
     <Compile Include="Commands\ClearUsersCommand.cs" />
     <Compile Include="Commands\IrcCommand.cs" />
     <Compile Include="Commands\MoveSongsToTopCommand.cs" />
-    <Compile Include="Commands\MoveUsersSongToTopCommand.cs" />
     <Compile Include="Commands\NextSongCommand.cs" />
     <Compile Include="Commands\PatCommand.cs" />
     <Compile Include="Commands\PrintBanListCommand.cs" />
