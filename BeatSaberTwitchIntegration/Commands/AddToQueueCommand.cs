@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using SongLoaderPlugin;
 using TwitchIntegrationPlugin.Misc;
 using TwitchIntegrationPlugin.Serializables;
+using TwitchIntegrationPlugin.UI;
 
 namespace TwitchIntegrationPlugin.Commands
 {
@@ -25,7 +26,6 @@ namespace TwitchIntegrationPlugin.Commands
 
             string queryString = msg.Content.Remove(0, msg.Content.IndexOf(' ') + 1);
             bool isTextSearch = !_songIdrx.IsMatch(queryString);
-
 
             // Checking to see if user was chosen for previous Random Queue
             if (StaticData.Config.Randomize && StaticData.Config.BlockMultiRandomQueue)
@@ -83,11 +83,15 @@ namespace TwitchIntegrationPlugin.Commands
                     int requestLimit = msg.Author.IsSubscriber
                         ? StaticData.Config.SubLimit
                         : StaticData.Config.ViewerLimit;
-                    if (StaticData.UserRequestCount[msg.Author.DisplayName] >= requestLimit)
+
+                    if (!msg.Author.IsMod && !msg.Author.IsBroadcaster)
                     {
-                        TwitchConnection.Instance.SendChatMessage(
-                            msg.Author.DisplayName + " you're making too many requests. Slow down.");
-                        return;
+                        if (StaticData.UserRequestCount[msg.Author.DisplayName] >= requestLimit)
+                        {
+                            TwitchConnection.Instance.SendChatMessage(
+                                msg.Author.DisplayName + " you're making too many requests. Slow down.");
+                            return;
+                        }
                     }
 
                     if (AddToQueue(request))
@@ -102,7 +106,8 @@ namespace TwitchIntegrationPlugin.Commands
                 SongDownloader.Instance.DownloadSong(request);
             });
 
-            SongLoader.Instance.RefreshSongs();
+            // Removed for now, The behavior this has when inside the song is a bit finnicky
+            // TwitchIntegrationUi.Instance.RefreshandResetLevelView();
         }
 
         private bool AddToQueue(Song song)

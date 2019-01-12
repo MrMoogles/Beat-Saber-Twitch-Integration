@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AsyncTwitch;
 using CustomUI.BeatSaber;
 using CustomUI.GameplaySettings;
-using CustomUI.MenuButton;
-using CustomUI.Settings;
-using CustomUI.Utilities;
-using HMUI;
 using JetBrains.Annotations;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
-using TMPro;
 using TwitchIntegrationPlugin.Commands;
 using TwitchIntegrationPlugin.Serializables;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
@@ -29,16 +22,25 @@ namespace TwitchIntegrationPlugin.UI
         // UI Controllers/Coordinators
         private MainMenuViewController _mainMenuViewController;
         private RectTransform _mainMenuRectTransform;
+        private CustomMenu _customMenu;
+        private CustomListViewController _customListViewController;
         private LevelListViewController _levelListViewController;
         private BeatmapCharacteristicSO[] _beatmapCharacteristics;
         private BeatmapCharacteristicSO _lastCharacteristic;
 
         // Buttons for UI
         private Button _twitchButton;
+        private Button _nextBtn;
+        private Button _randomizeBtn;
+        private Button _moveToTopBtn;
+        private Button _subChatBtn;
+        private Button _clearQueueBtn;
+        private Button _banBtn;
 
         // Variables for future processing
         private static TwitchMessage _internalTwitchMessage;
         private bool _twitchSubOnly = false;
+        private string _lvlData = null;
 
         internal static void OnLoad()
         {
@@ -97,14 +99,13 @@ namespace TwitchIntegrationPlugin.UI
 
         private void CreateSubMenuItems()
         {
-            var trb1Menu = GameplaySettingsUI.CreateSubmenuOption(GameplaySettingsPanels.PlayerSettingsRight, "Twitch Queue Bot", "MainMenu", "TRB1", "Twitch Queue Bot Options", null);
+            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
 
-            CreateNextButton();
-            CreateRandomizeButton();
-            //CreateSongToTopButton();
-            CreateSubOnlyButton();
-            CreateClearQueueButton();
-            CreateBanSongButton();
+            var trb1Menu = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Twitch Queue Bot", "MainMenu", "TRB1", null);
+            trb1Menu.OnToggle += (value) =>
+            {
+                RequestQueueControllerMain();
+            };
 
             _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
             _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
@@ -112,10 +113,9 @@ namespace TwitchIntegrationPlugin.UI
             _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
         }
 
-        string lvlData = null;
         private void _levelListViewController_didSelectLevelEvent(LevelListViewController levelListView, IBeatmapLevel selectedLevel)
         {
-            lvlData = selectedLevel.levelID.Substring(0, Math.Min(32, selectedLevel.levelID.Length));
+            _lvlData = selectedLevel.levelID.Substring(0, Math.Min(32, selectedLevel.levelID.Length));
         }
 
         private void CreateTwitchButton()
@@ -139,86 +139,120 @@ namespace TwitchIntegrationPlugin.UI
             });
         }
 
+        private void RequestQueueControllerMain()
+        {
+            _customMenu = BeatSaberUI.CreateCustomMenu<CustomMenu>("Test");
+            _customListViewController = BeatSaberUI.CreateViewController<CustomListViewController>();
+
+            CreateNextButton();
+            CreateRandomizeButton();
+            CreateSongToTopButton();
+            CreateSubOnlyButton();
+            CreateClearQueueButton();
+            CreateBanSongButton();
+
+            _customMenu.SetLeftViewController(_customListViewController, true);
+            _customMenu.Present();
+        }
+
         private void CreateNextButton()
         {
-            var nextSongOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Next Song", "TRB1", "", null);
-            nextSongOption.OnToggle += (value) =>
+            _nextBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 20f), new Vector2(30f, 15f));
+            _nextBtn.SetButtonText("Next Song");
+            _nextBtn.ToggleWordWrapping(false);
+            _nextBtn.onClick.AddListener(delegate ()
             {
                 NextSongCommand nsc = new NextSongCommand();
                 nsc.Run(_internalTwitchMessage);
-            };
-
+                RefreshandResetLevelView();
+            });
         }
 
         private void CreateRandomizeButton()
         {
-            if (StaticData.Config.Randomize)
+            _randomizeBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 0f), new Vector2(30f, 15f));
+            _randomizeBtn.SetButtonText("Randomize Queue");
+            _randomizeBtn.ToggleWordWrapping(false);
+            _randomizeBtn.interactable = StaticData.Config.Randomize;
+            _randomizeBtn.onClick.AddListener(delegate ()
             {
-                var randomizeOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Randomize List", "TRB1", "", null);
-                randomizeOption.OnToggle += (value) =>
-                {
-                    RandomizeCommand rndmc = new RandomizeCommand();
-                    rndmc.Run(_internalTwitchMessage);
-                };
-            }
+                RandomizeCommand rndmc = new RandomizeCommand();
+                rndmc.Run(_internalTwitchMessage);
+                RefreshandResetLevelView();
+            });
         }
 
-        //private void CreateSongToTopButton()
-        //{
-        //    _randomizeBtn = _customListViewController.CreateUIButton("QuitButton", new Vector2(-50f, 6f), new Vector2(20f, 6f));
-        //    _randomizeBtn.SetButtonText("Move Song to Top");
-        //    _randomizeBtn.SetButtonTextSize(2.5f);
-        //    _randomizeBtn.ToggleWordWrapping(false);
-        //    _randomizeBtn.interactable = StaticData.Config.Randomize;
-        //    _randomizeBtn.onClick.AddListener(delegate ()
-        //    {
-        //        MoveSongsToTopCommand msttc = new MoveSongsToTopCommand();
-        //        _internalTwitchMessage.Content = _selectedSongID;
-        //        msttc.Run(_internalTwitchMessage);
-        //        //_customListViewController.Data = RefreshEntireQueue();
-        //        _customListViewController._customListTableView.ReloadData();
-        //    });
-        //}
+        private void CreateSongToTopButton()
+        {
+            _moveToTopBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, -20f), new Vector2(30f, 15f));
+            _moveToTopBtn.SetButtonText("Move Song to Top");
+            _moveToTopBtn.ToggleWordWrapping(false);
+            _moveToTopBtn.onClick.AddListener(delegate ()
+            {
+                string keyToMove = "";
+                foreach (Song s in StaticData.SongQueue.SongQueueList)
+                {
+                    if (s.hash.Equals(_lvlData))
+                    {
+                        keyToMove = s.id;
+                        break;
+                    }
+                }
+                _internalTwitchMessage.Content = keyToMove;
+
+                MoveSongsToTopCommand msttc = new MoveSongsToTopCommand();
+                msttc.Run(_internalTwitchMessage);
+
+                RefreshandResetLevelView();
+            });
+        }
 
         private void CreateSubOnlyButton()
         {
-            var subOnlyOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Sub Only Chat", "TRB1", "", null);
-            subOnlyOption.GetValue = _twitchSubOnly;
-            subOnlyOption.OnToggle += (bool value) =>
+            _subChatBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, 20f), new Vector2(30f, 15f));
+            _subChatBtn.SetButtonText("Sub Chat");
+            _subChatBtn.ToggleWordWrapping(false);
+            _subChatBtn.onClick.AddListener(delegate ()
             {
                 if (!_twitchSubOnly)
                 {
                     TwitchConnection.Instance.SendChatMessage("/subscribers");
-                    _twitchSubOnly = value;
+                    _twitchSubOnly = true;
                 }
                 else
                 {
                     TwitchConnection.Instance.SendChatMessage("/subscribersoff");
-                    _twitchSubOnly = value;
+                    _twitchSubOnly = false;
                 }
-            };
+
+            });
         }
 
         private void CreateClearQueueButton()
         {
-            var clearAllOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Clear All Songs", "TRB1", "", null);
-            clearAllOption.OnToggle += (value) =>
+            _clearQueueBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, 0f), new Vector2(30f, 15f));
+            _clearQueueBtn.SetButtonText("Clear Queue");
+            _clearQueueBtn.ToggleWordWrapping(false);
+            _clearQueueBtn.onClick.AddListener(delegate ()
             {
                 ClearQueueCommand cqc = new ClearQueueCommand();
                 cqc.Run(_internalTwitchMessage);
-            };
+                _customListViewController.backButtonPressed();
+            });
         }
 
         private void CreateBanSongButton()
         {
-            var banSongOption = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Ban Currently selected Song", "TRB1", "", null);
-            banSongOption.OnToggle += (value) =>
+            _banBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, -20f), new Vector2(30f, 15f));
+            _banBtn.SetButtonText("Ban Song");
+            _banBtn.ToggleWordWrapping(false);
+            _banBtn.onClick.AddListener(delegate ()
             {
                 string keyToBan = "";
                 int rowNum = 0;
-                foreach(Song s in StaticData.SongQueue.SongQueueList)
+                foreach (Song s in StaticData.SongQueue.SongQueueList)
                 {
-                    if (s.hash.Equals(lvlData))
+                    if (s.hash.Equals(_lvlData))
                     {
                         keyToBan = s.id;
                         break;
@@ -231,9 +265,14 @@ namespace TwitchIntegrationPlugin.UI
                 BanSongCommand bsc = new BanSongCommand();
                 bsc.Run(_internalTwitchMessage);
 
-                SongLoader.Instance.RefreshSongs();
-                RequestUIController.Instance.SetLevels(_lastCharacteristic);
-            };
+                RefreshandResetLevelView();
+            });
+        }
+
+        public void RefreshandResetLevelView()
+        {
+            SongLoader.Instance.RefreshSongs();
+            RequestUIController.Instance.SetLevels(_lastCharacteristic);
         }
     }
 }

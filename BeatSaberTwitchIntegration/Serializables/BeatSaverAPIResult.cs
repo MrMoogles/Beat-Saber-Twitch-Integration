@@ -77,6 +77,7 @@ namespace TwitchIntegrationPlugin.Serializables
             node["downloadurl"] = downloadUrl;
             node["coverurl"] = coverUrl;
             node["songhash"] = hash;
+            node["requestedby"] = requestedBy;
             return node;
         }
 
@@ -92,6 +93,7 @@ namespace TwitchIntegrationPlugin.Serializables
             buffer.coverUrl = mainNode["coverurl"];
             buffer.downloadUrl = mainNode["downloadurl"];
             buffer.hash = mainNode["songhash"];
+            buffer.requestedBy = mainNode["requestedby"];
 
             return buffer;
         }

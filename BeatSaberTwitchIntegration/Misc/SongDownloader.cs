@@ -303,7 +303,6 @@ namespace TwitchIntegrationPlugin.Misc
 
             if (wwwId.isNetworkError || wwwId.isHttpError)
             {
-                TwitchConnection.Instance.SendChatMessage(wwwId.error);
                 Logger.Error(wwwId.error);
                 callback?.Invoke(new Song());
             }

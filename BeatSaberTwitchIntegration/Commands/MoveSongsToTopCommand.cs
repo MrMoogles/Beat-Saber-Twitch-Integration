@@ -13,12 +13,12 @@ namespace TwitchIntegrationPlugin.Commands
             if (!msg.Author.IsMod && !msg.Author.IsBroadcaster) return;
 
             string queryString = msg.Content.Remove(0, msg.Content.IndexOf(' ') + 1);
-            if (String.IsNullOrEmpty(queryString))
+            if (!String.IsNullOrEmpty(queryString))
             {
                 for (int i = 0; i < StaticData.SongQueue.GetSongList().Count; i++)
                 {
-                    var song = StaticData.SongQueue.GetSongList()[i];
-                    if (song.requestedBy.Equals(queryString) || song.id.Contains(queryString))
+                    Song song = StaticData.SongQueue.SongQueueList[i];
+                    if (song.id.Contains(queryString) || song.requestedBy.Equals(queryString))
                     {
                         StaticData.SongQueue.GetSongList().RemoveAt(i);
                         StaticData.SongQueue.GetSongList().Insert(0, song);

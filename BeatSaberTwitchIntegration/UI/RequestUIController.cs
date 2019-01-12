@@ -13,6 +13,8 @@ using TwitchIntegrationPlugin.Serializables;
 
 namespace TwitchIntegrationPlugin.UI
 {
+    // Could not have done this without reviewing andruzzzhka's code, there are lots of modified features from their original code
+    // Visit the original Repository here: https://github.com/andruzzzhka/BeatSaverDownloader
     class RequestUIController : MonoBehaviour
     {
         public bool initialized = false;
