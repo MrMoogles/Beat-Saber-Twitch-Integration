@@ -13,8 +13,8 @@ Lastly, add the channel to monitor. (This doesn't have to be the same as your tw
 ## Requirements
 [Beatsaber Custom UI](https://github.com/brian91292/BeatSaber-CustomUI)   
 [AsyncTwitch](https://github.com/Soliel/AsyncTwitch)  
-[SongLoader](https://github.com/xyonico/BeatSaberSongLoader)
-[BeatSaverDownloader](https://github.com/andruzzzhka/BeatSaverDownloader)
+[SongLoader](https://github.com/xyonico/BeatSaberSongLoader)  
+[BeatSaverDownloader](https://github.com/andruzzzhka/BeatSaverDownloader)  
 
 Thanks to all of you for making it a bit easier to update this
 
