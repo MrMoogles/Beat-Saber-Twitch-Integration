@@ -49,6 +49,7 @@
     <Compile Include="Commands\AddToQueueCommand.cs" />
     <Compile Include="Commands\ClearQueueCommand.cs" />
     <Compile Include="Commands\ClearUsersCommand.cs" />
+    <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Commands\IrcCommand.cs" />
     <Compile Include="Commands\MoveSongsToTopCommand.cs" />
     <Compile Include="Commands\NextSongCommand.cs" />
