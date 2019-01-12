@@ -1,13 +1,4 @@
 ﻿using AsyncTwitch;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwitchIntegrationPlugin.Serializables;
-using BeatSaverDownloader.Misc;
-using System.IO;
-using SimpleJSON;
 using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.Commands

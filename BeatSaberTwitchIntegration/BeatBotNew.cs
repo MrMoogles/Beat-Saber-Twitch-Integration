@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AsyncTwitch;
-using BeatSaverDownloader.Misc;
 using TwitchIntegrationPlugin.Commands;
 using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
@@ -30,7 +29,6 @@ namespace TwitchIntegrationPlugin
 
             TwitchConnection.Instance.StartConnection();
             TwitchConnection.Instance.RegisterOnMessageReceived(OnMessageReceived);
-            PlaylistsCollection.ReloadPlaylists();
         }
 
         private void OnMessageReceived(TwitchConnection connection, TwitchMessage msg)

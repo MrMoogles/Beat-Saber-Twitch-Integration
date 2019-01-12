@@ -1,5 +1,4 @@
-﻿using BeatSaverDownloader.Misc;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TwitchIntegrationPlugin.Serializables;
 
 namespace TwitchIntegrationPlugin
