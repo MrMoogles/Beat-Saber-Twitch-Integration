@@ -10,6 +10,12 @@ Add your Twitch username, an OAuth token that you can get here: https://twitchap
 
 Lastly, add the channel to monitor. (This doesn't have to be the same as your twitch login, ie if you're using a bot to do requests)
 
+## Requirements
+BeatsaberUI Custom UI
+AsyncTwitch
+SongLoader
+BeatSaverDownloader
+
 ## Usage
 Available Commands:
 
