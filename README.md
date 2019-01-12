@@ -7,6 +7,7 @@ For all you streamers out there who want song requests in your chat!
 3. Edit the bot config (located in `UserData/TwitchIntegrationConfig.json`) 
 
 Add your Twitch username, an OAuth token that you can get here: https://twitchapps.com/tmi **(this does require the `oauth:` prefix)**  
+
 Lastly, add the channel to monitor. (This doesn't have to be the same as your twitch login, ie if you're using a bot to do requests)
 
 ## Usage
@@ -17,10 +18,10 @@ Available Commands:
 | Command | Usage                                                                                                                                                         |
 |--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | !qhelp       | Shows all available commands                                                                                                                                  |
-| !add <song>  | Add a song to queue using the BeatSaver ID/Search Text. The Original soundtracks are stored using the values OST1-11 in the order they are displayed in game. |
-| !bsr <song>  | Add a song to queue using the BeatSaver ID/Search Text. The Original soundtracks are stored using the values OST1-11 in the order they are displayed in game. |
+| !add <song>  | Add a song to queue using the BeatSaver ID/Search Text.                                                                                                       |
+| !bsr <song>  | Add a song to queue using the BeatSaver ID/Search Text.                                                                                                       |
 | !queue       | Shows the current queue                                                                                                                                       |
-| !pat <name>  | Sender pats Receiver                                                                                                                                   |
+| !pat <name>  | Sender pats Receiver                                                                                                                                          |
 
 **[Moderator Only]**  
 
@@ -72,10 +73,9 @@ Similar setup in the shadow_blacklist.txt file.
         "1118"
     ]
 }
-  
-  
 
 Incoming Features:
+Implement Original Soundtrack for Requests
 Implement Shadow Ban list
 Implement Configuration option to return Chat messages when enabled
 Fix bug when it looks like SongDownloader didn't download last song in queue
