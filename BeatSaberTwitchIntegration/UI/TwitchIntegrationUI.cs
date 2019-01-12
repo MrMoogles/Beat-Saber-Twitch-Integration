@@ -1,267 +1,278 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using HMUI;
+using AsyncTwitch;
+using CustomUI.BeatSaber;
+using CustomUI.GameplaySettings;
 using JetBrains.Annotations;
-using TMPro;
+using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
+using TwitchIntegrationPlugin.Commands;
+using TwitchIntegrationPlugin.Serializables;
 using UnityEngine;
 using UnityEngine.UI;
-using VRUI;
-using Image = UnityEngine.UI.Image;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.UI
 {
     public class TwitchIntegrationUi : MonoBehaviour
     {
-        private RectTransform _mainMenuRectTransform;
-        public  MainMenuViewController MainMenuViewController;
-
-        private Button _buttonInstance;
-        private Button _backButtonInstance;
-        private GameObject _loadingIndicatorInstance;
-
         public static TwitchIntegrationUi Instance;
 
-        public static List<Sprite> Icons = new List<Sprite>();
+        // UI Controllers/Coordinators
+        private MainMenuViewController _mainMenuViewController;
+        private RectTransform _mainMenuRectTransform;
+        private CustomMenu _customMenu;
+        private CustomListViewController _customListViewController;
+        private LevelListViewController _levelListViewController;
+        private BeatmapCharacteristicSO[] _beatmapCharacteristics;
+        private BeatmapCharacteristicSO _lastCharacteristic;
 
-        public LevelRequestFlowCoordinator LevelRequestFlowCoordinator { get; set; }
+        // Buttons for UI
+        private Button _twitchButton;
+        private Button _nextBtn;
+        private Button _randomizeBtn;
+        private Button _moveToTopBtn;
+        private Button _subChatBtn;
+        private Button _clearQueueBtn;
+        private Button _banBtn;
 
-        public static Dictionary<string, Sprite> CachedSprites = new Dictionary<string, Sprite>();
-
-        private NLog.Logger _logger;
-
+        // Variables for future processing
+        private static TwitchMessage _internalTwitchMessage;
+        private bool _twitchSubOnly = false;
+        private string _lvlData = null;
 
         internal static void OnLoad()
         {
-            if(Instance != null)
+            if (Instance != null)
             {
+                Instance.CreateUI();
                 return;
             }
             new GameObject("TwitchIntegration UI").AddComponent<TwitchIntegrationUi>();
+            _internalTwitchMessage = new TwitchMessage();
+            _internalTwitchMessage.Author.IsBroadcaster = true;
+            _internalTwitchMessage.Author.IsMod = true;
         }
 
         [UsedImplicitly]
         private void Awake()
         {
-            _logger = NLog.LogManager.GetCurrentClassLogger();
-            Instance = this;
-            
-            foreach (var sprite in Resources.FindObjectsOfTypeAll<Sprite>())
+            if (Instance != this)
             {
-                Icons.Add(sprite);
+                DontDestroyOnLoad(this);
+                Instance = this;
+                SongLoader.SongsLoadedEvent += SongsLoaded;
+                CreateUI();
             }
-
-            try
-            {
-                _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
-                _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "BackArrowButton"));
-                MainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
-                _mainMenuRectTransform = _buttonInstance.transform.parent as RectTransform;
-                _loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().First(x => x.name == "LoadingIndicator");
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-
-            try
-            {
-                CreateTwitchModeButton();
-                CreateDebugButton();
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-
         }
 
-        private void CreateTwitchModeButton()
+        public void SongsLoaded(SongLoader sender, List<CustomLevel> levels)
         {
-            var twitchModeButton = CreateUiButton(_mainMenuRectTransform, "QuitButton");
+            if (_twitchButton != null)
+            {
+                _twitchButton.interactable = true;
+            }
+            else
+            {
+                CreateUI();
+            }
+        }
 
+        public void CreateUI()
+        {
             try
             {
-                ((RectTransform) twitchModeButton.transform).anchoredPosition = new Vector2(4f, 68f);
-                ((RectTransform) twitchModeButton.transform).sizeDelta = new Vector2(34f, 10f);
+                _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
+                _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
 
-                SetButtonText(ref twitchModeButton, (StaticData.TwitchMode) ? "Twitch Mode: ON" : "Twitch Mode: OFF");
-                //SetButtonIcon(ref _twitchModeButton, icons.First(x => (x.name == "SettingsIcon")));
+                CreateTwitchButton();
+                CreateSubMenuItems();
 
-                twitchModeButton.onClick.AddListener(delegate
+                _twitchButton.interactable = SongLoader.AreSongsLoaded;
+            }
+            catch (Exception e)
+            {
+                Logger.Exception($"Unable to create UI! Exception: {e}");
+            }
+        }
+
+        private void CreateSubMenuItems()
+        {
+            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
+
+            var trb1Menu = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Twitch Queue Bot", "MainMenu", "TRB1", null);
+            trb1Menu.OnToggle += (value) =>
+            {
+                RequestQueueControllerMain();
+            };
+
+            _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
+            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
+            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
+            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
+        }
+
+        private void _levelListViewController_didSelectLevelEvent(LevelListViewController levelListView, IBeatmapLevel selectedLevel)
+        {
+            _lvlData = selectedLevel.levelID.Substring(0, Math.Min(32, selectedLevel.levelID.Length));
+        }
+
+        private void CreateTwitchButton()
+        {
+            _twitchButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton", new Vector2(20f, 70f), new Vector2(34f, 10f));
+            (_twitchButton.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
+            (_twitchButton.transform as RectTransform).anchorMax = new Vector2(0f, 0f);
+
+            _twitchButton.SetButtonText((StaticData.TwitchMode) ? "Twitch Mode: ON" : "Twitch Mode: OFF");
+            _twitchButton.onClick.AddListener(delegate ()
+            {
+                StaticData.TwitchMode = !StaticData.TwitchMode;
+                if (StaticData.TwitchMode)
                 {
-                    StaticData.TwitchMode = !StaticData.TwitchMode;
-                    if (StaticData.TwitchMode)
-                    {
-                        SetButtonText(ref twitchModeButton, "Twitch Mode: ON");
-                    } else
-                    {
-                        SetButtonText(ref twitchModeButton, "Twitch Mode: OFF");
-                    }
-                    
-
-                });
-            } catch(Exception e)
-            {
-                _logger.Error(e);
-            }
-        }
-
-        private void CreateDebugButton()
-        {
-            var debugButton = CreateUiButton(_mainMenuRectTransform, "QuitButton");
-
-            try
-            {
-                ((RectTransform) debugButton.transform).anchoredPosition = new Vector2(40f, 68f);
-                ((RectTransform) debugButton.transform).sizeDelta = new Vector2(25f, 10f);
-
-                SetButtonText(ref debugButton, "Request Queue");
-
-                //SetButtonIcon(ref _debugButton, icons.First(x => (x.name == "SettingsIcon")));
-
-                debugButton.onClick.AddListener(delegate
+                    _twitchButton.SetButtonText("Twitch Mode: ON");
+                }
+                else
                 {
-                    try
+                    _twitchButton.SetButtonText("Twitch Mode: OFF");
+                }
+            });
+        }
+
+        private void RequestQueueControllerMain()
+        {
+            _customMenu = BeatSaberUI.CreateCustomMenu<CustomMenu>("Test");
+            _customListViewController = BeatSaberUI.CreateViewController<CustomListViewController>();
+
+            CreateNextButton();
+            CreateRandomizeButton();
+            CreateSongToTopButton();
+            CreateSubOnlyButton();
+            CreateClearQueueButton();
+            CreateBanSongButton();
+
+            _customMenu.SetLeftViewController(_customListViewController, true);
+            _customMenu.Present();
+        }
+
+        private void CreateNextButton()
+        {
+            _nextBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 20f), new Vector2(30f, 15f));
+            _nextBtn.SetButtonText("Next Song");
+            _nextBtn.ToggleWordWrapping(false);
+            _nextBtn.onClick.AddListener(delegate ()
+            {
+                NextSongCommand nsc = new NextSongCommand();
+                nsc.Run(_internalTwitchMessage);
+                RefreshandResetLevelView();
+            });
+        }
+
+        private void CreateRandomizeButton()
+        {
+            _randomizeBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 0f), new Vector2(30f, 15f));
+            _randomizeBtn.SetButtonText("Randomize Queue");
+            _randomizeBtn.ToggleWordWrapping(false);
+            _randomizeBtn.interactable = StaticData.Config.Randomize;
+            _randomizeBtn.onClick.AddListener(delegate ()
+            {
+                RandomizeCommand rndmc = new RandomizeCommand();
+                rndmc.Run(_internalTwitchMessage);
+                RefreshandResetLevelView();
+            });
+        }
+
+        private void CreateSongToTopButton()
+        {
+            _moveToTopBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, -20f), new Vector2(30f, 15f));
+            _moveToTopBtn.SetButtonText("Move Song to Top");
+            _moveToTopBtn.ToggleWordWrapping(false);
+            _moveToTopBtn.onClick.AddListener(delegate ()
+            {
+                string keyToMove = "";
+                foreach (Song s in StaticData.SongQueue.SongQueueList)
+                {
+                    if (s.hash.Equals(_lvlData))
                     {
-                        if (LevelRequestFlowCoordinator == null)
-                        {
-                            LevelRequestFlowCoordinator = new GameObject("Twitch Integration Coordinator").AddComponent<LevelRequestFlowCoordinator>();
-                        }
-                        LevelRequestFlowCoordinator.Present(MainMenuViewController, true);
+                        keyToMove = s.id;
+                        break;
                     }
-                    catch(Exception e)
+                }
+                _internalTwitchMessage.Content = keyToMove;
+
+                MoveSongsToTopCommand msttc = new MoveSongsToTopCommand();
+                msttc.Run(_internalTwitchMessage);
+
+                RefreshandResetLevelView();
+            });
+        }
+
+        private void CreateSubOnlyButton()
+        {
+            _subChatBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, 20f), new Vector2(30f, 15f));
+            _subChatBtn.SetButtonText("Sub Chat");
+            _subChatBtn.ToggleWordWrapping(false);
+            _subChatBtn.onClick.AddListener(delegate ()
+            {
+                if (!_twitchSubOnly)
+                {
+                    TwitchConnection.Instance.SendChatMessage("/subscribers");
+                    _twitchSubOnly = true;
+                }
+                else
+                {
+                    TwitchConnection.Instance.SendChatMessage("/subscribersoff");
+                    _twitchSubOnly = false;
+                }
+
+            });
+        }
+
+        private void CreateClearQueueButton()
+        {
+            _clearQueueBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, 0f), new Vector2(30f, 15f));
+            _clearQueueBtn.SetButtonText("Clear Queue");
+            _clearQueueBtn.ToggleWordWrapping(false);
+            _clearQueueBtn.onClick.AddListener(delegate ()
+            {
+                ClearQueueCommand cqc = new ClearQueueCommand();
+                cqc.Run(_internalTwitchMessage);
+                _customListViewController.backButtonPressed();
+            });
+        }
+
+        private void CreateBanSongButton()
+        {
+            _banBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(-30f, -20f), new Vector2(30f, 15f));
+            _banBtn.SetButtonText("Ban Song");
+            _banBtn.ToggleWordWrapping(false);
+            _banBtn.onClick.AddListener(delegate ()
+            {
+                string keyToBan = "";
+                int rowNum = 0;
+                foreach (Song s in StaticData.SongQueue.SongQueueList)
+                {
+                    if (s.hash.Equals(_lvlData))
                     {
-                        _logger.Error(e);
+                        keyToBan = s.id;
+                        break;
                     }
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
+                    rowNum++;
+                }
+
+                _internalTwitchMessage.Content = keyToBan;
+                StaticData.SongQueue.SongQueueList.RemoveAt(rowNum);
+                BanSongCommand bsc = new BanSongCommand();
+                bsc.Run(_internalTwitchMessage);
+
+                RefreshandResetLevelView();
+            });
         }
 
-        public Button CreateBackButton(RectTransform parent)
+        public void RefreshandResetLevelView()
         {
-            if (_backButtonInstance == null)
-            {
-                return null;
-            }
-
-            var button = Instantiate(_backButtonInstance, parent, false);
-            DestroyImmediate(button.GetComponent<SignalOnUIButtonClick>());
-            button.onClick = new Button.ButtonClickedEvent();
-
-            return button;
+            SongLoader.Instance.RefreshSongs();
+            RequestUIController.Instance.SetLevels(_lastCharacteristic);
         }
-
-        public GameObject CreateLoadingIndicator(Transform parent)
-        {
-            GameObject indicator = Instantiate(_loadingIndicatorInstance, parent, false);
-            return indicator;
-        }
-
-        public Button CreateUiButton(RectTransform parent, string buttonTemplate)
-        {
-            if (_buttonInstance == null)
-            {
-                return null;
-            }
-
-            var btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == buttonTemplate)), parent, false);
-            DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
-            btn.onClick = new Button.ButtonClickedEvent();
-
-            return btn;
-        }
-
-        public T CreateViewController<T>(string objName) where T : VRUIViewController
-        {
-            var vc = new GameObject(objName).AddComponent<T>();
-
-            vc.rectTransform.anchorMin = new Vector2(0f, 0f);
-            vc.rectTransform.anchorMax = new Vector2(1f, 1f);
-            vc.rectTransform.sizeDelta = new Vector2(0f, 0f);
-            vc.rectTransform.anchoredPosition = new Vector2(0f, 0f);
-
-            return vc;
-        }
-
-        public TextMeshProUGUI CreateText(RectTransform parent, string text, Vector2 position)
-        {
-            var textMesh = new GameObject("TextMeshProUGUI_GO").AddComponent<TextMeshProUGUI>();
-            textMesh.rectTransform.SetParent(parent, false);
-            textMesh.text = text;
-            textMesh.fontSize = 4;
-            textMesh.color = Color.white;
-            textMesh.font = Resources.Load<TMP_FontAsset>("Teko-Medium SDF No Glow");
-            textMesh.rectTransform.anchorMin = new Vector2(0.5f, 1f);
-            textMesh.rectTransform.anchorMax = new Vector2(0.5f, 1f);
-            textMesh.rectTransform.sizeDelta = new Vector2(0f, 0f);
-            textMesh.rectTransform.anchoredPosition = position;
-            textMesh.alignment = TextAlignmentOptions.Center;
-            return textMesh;
-        }
-
-        public void SetButtonText(ref Button button, string text)
-        {
-            if (button.GetComponentInChildren<TextMeshProUGUI>() != null)
-            {
-
-                button.GetComponentInChildren<TextMeshProUGUI>().text = text;
-            }
-
-        }
-
-        public void SetButtonTextSize(ref Button button, float fontSize)
-        {
-            if (button.GetComponentInChildren<TextMeshProUGUI>() != null)
-            {
-                button.GetComponentInChildren<TextMeshProUGUI>().fontSize = fontSize;
-            }
-
-
-        }
-
-        public void SetButtonIcon(ref Button button, Sprite icon)
-        {
-            if (button.GetComponentsInChildren<Image>().Count() > 1)
-            {
-
-                button.GetComponentsInChildren<Image>()[1].sprite = icon;
-            }
-
-        }
-
-        public void SetButtonBackground(ref Button button, Sprite background)
-        {
-            if (button.GetComponentsInChildren<Image>().Any())
-            {
-
-                button.GetComponentsInChildren<Image>()[0].sprite = background;
-            }
-
-        }
-
-        public static IEnumerator LoadSprite(string spritePath, TableCell obj)
-        {
-            if (CachedSprites.ContainsKey(spritePath))
-            {
-                obj.GetComponentsInChildren<Image>()[2].sprite = CachedSprites[spritePath];
-                yield break;
-            }
-
-            using (var www = new WWW(spritePath))
-            {
-                yield return www;
-                var tex = www.texture;
-                var newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f, 100, 1);
-                CachedSprites.Add(spritePath, newSprite);
-                obj.GetComponentsInChildren<Image>()[2].sprite = newSprite;
-            }
-        }
-
     }
 }
