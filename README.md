@@ -45,12 +45,6 @@ Available Commands:
 | !clearusers           | Works in conjuction with Randomize, It'll clear users of the already chosen list so they can readd songs to future queues. |
 | !mtt <id or username> | This will move all of a users requests to the top of the queue, or will move a single request (by ID) to the top of queue. |
 
-To use the bot, place all files in the same location or in the same folder.  
-You'll be using the following files:  
-
-BeatSaberBot.exe
-Files located in "Config" folder
-
 Note: Blacklist File is a file that can have songs added to during stream while the shadow banlist is meant more for songs that are banned for another reason, maybe your starter song, ending song, etc. Not displayed to chat.  
 
 Edit AsyncTwitchConfig.json to have your channel and Oauth token of yourself or a bot you have setup for your channel
