@@ -17,6 +17,9 @@ using UnityEngine.Networking;
 
 namespace TwitchIntegrationPlugin.Misc
 {
+
+    // Thanks to andruzzzhka for most of the logic here. 
+    // I changed up the request since we want to store the information from the requesting user.
     public class SongDownloader : MonoBehaviour
     {
         public event Action<Song> songDownloaded;

@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using AsyncTwitch;
 using JetBrains.Annotations;
 using SongLoaderPlugin;
 using TwitchIntegrationPlugin.Misc;
 using TwitchIntegrationPlugin.Serializables;
 using TwitchIntegrationPlugin.UI;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
+using UnityEngine;
 
 namespace TwitchIntegrationPlugin.Commands
 {
@@ -102,12 +107,7 @@ namespace TwitchIntegrationPlugin.Commands
                     if (AddToQueue(request))
                         StaticData.UserRequestCount.Add(msg.Author.DisplayName, 1);
                 }
-
-                SongDownloader.Instance.DownloadSong(request);
             });
-
-            // Removed for now, The behavior this has when inside the song is a bit finnicky
-            // TwitchIntegrationUi.Instance.RefreshandResetLevelView();
         }
 
         private bool AddToQueue(Song song)
@@ -119,6 +119,12 @@ namespace TwitchIntegrationPlugin.Commands
             }
 
             StaticData.SongQueue.AddSongToQueue(song);
+            song.songQueueState = SongQueueState.Queued;
+            if (StaticData.SongQueue.SongQueueList.Count(x => x.songQueueState == SongQueueState.Downloading) < 3)
+            {
+                SongDownloader.Instance.DownloadSong(song);
+            }        
+            
             TwitchConnection.Instance.SendChatMessage($"{song.requestedBy} added \"{song.songName}\", uploaded by: {song.authorName} to queue!");
             return true;
         }

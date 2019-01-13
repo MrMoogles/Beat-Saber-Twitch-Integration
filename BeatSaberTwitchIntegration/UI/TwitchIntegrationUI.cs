@@ -35,6 +35,7 @@ namespace TwitchIntegrationPlugin.UI
         private Button _moveToTopBtn;
         private Button _subChatBtn;
         private Button _clearQueueBtn;
+        private Button _refreshButton;
         private Button _banBtn;
 
         // Variables for future processing
@@ -101,7 +102,7 @@ namespace TwitchIntegrationPlugin.UI
         {
             _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
 
-            var trb1Menu = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.PlayerSettingsRight, "Twitch Queue Bot", "MainMenu", "TRB1", null);
+            var trb1Menu = GameplaySettingsUI.CreateToggleOption(GameplaySettingsPanels.ModifiersRight, "Twitch Queue Bot", "MainMenu", null, null);
             trb1Menu.OnToggle += (value) =>
             {
                 RequestQueueControllerMain();
@@ -150,6 +151,7 @@ namespace TwitchIntegrationPlugin.UI
             CreateSubOnlyButton();
             CreateClearQueueButton();
             CreateBanSongButton();
+            CreateRefreshSongList();
 
             _customMenu.SetLeftViewController(_customListViewController, true);
             _customMenu.Present();
@@ -157,7 +159,7 @@ namespace TwitchIntegrationPlugin.UI
 
         private void CreateNextButton()
         {
-            _nextBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 20f), new Vector2(30f, 15f));
+            _nextBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(5f, 20f), new Vector2(30f, 15f));
             _nextBtn.SetButtonText("Next Song");
             _nextBtn.ToggleWordWrapping(false);
             _nextBtn.onClick.AddListener(delegate ()
@@ -170,7 +172,7 @@ namespace TwitchIntegrationPlugin.UI
 
         private void CreateRandomizeButton()
         {
-            _randomizeBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, 0f), new Vector2(30f, 15f));
+            _randomizeBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(5f, 0f), new Vector2(30f, 15f));
             _randomizeBtn.SetButtonText("Randomize Queue");
             _randomizeBtn.ToggleWordWrapping(false);
             _randomizeBtn.interactable = StaticData.Config.Randomize;
@@ -184,7 +186,7 @@ namespace TwitchIntegrationPlugin.UI
 
         private void CreateSongToTopButton()
         {
-            _moveToTopBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(30f, -20f), new Vector2(30f, 15f));
+            _moveToTopBtn = _customListViewController.CreateUIButton("CreditsButton", new Vector2(5f, -20f), new Vector2(30f, 15f));
             _moveToTopBtn.SetButtonText("Move Song to Top");
             _moveToTopBtn.ToggleWordWrapping(false);
             _moveToTopBtn.onClick.AddListener(delegate ()
@@ -204,6 +206,17 @@ namespace TwitchIntegrationPlugin.UI
                 msttc.Run(_internalTwitchMessage);
 
                 RefreshandResetLevelView();
+            });
+        }
+
+        private void CreateRefreshSongList()
+        {
+            _refreshButton = _customListViewController.CreateUIButton("CreditsButton", new Vector2(40f, -20f), new Vector2(30f, 15f));
+            _refreshButton.SetButtonText("Refresh SongList");
+            _refreshButton.ToggleWordWrapping(false);
+            _refreshButton.onClick.AddListener(delegate ()
+            {
+                SongLoader.Instance.RefreshSongs();
             });
         }
 
@@ -237,7 +250,7 @@ namespace TwitchIntegrationPlugin.UI
             {
                 ClearQueueCommand cqc = new ClearQueueCommand();
                 cqc.Run(_internalTwitchMessage);
-                _customListViewController.backButtonPressed();
+                RefreshandResetLevelView();
             });
         }
 
@@ -271,7 +284,6 @@ namespace TwitchIntegrationPlugin.UI
 
         public void RefreshandResetLevelView()
         {
-            SongLoader.Instance.RefreshSongs();
             RequestUIController.Instance.SetLevels(_lastCharacteristic);
         }
     }

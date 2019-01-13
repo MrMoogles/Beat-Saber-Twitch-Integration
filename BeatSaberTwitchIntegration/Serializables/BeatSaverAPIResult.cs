@@ -83,17 +83,19 @@ namespace TwitchIntegrationPlugin.Serializables
 
         public static Song FromSearchNode(JSONNode mainNode)
         {
-            Song buffer = new Song();
-            buffer.id = mainNode["id"];
-            buffer.beatname = mainNode["beatname"];
-            buffer.songName = mainNode["songname"];
-            buffer.songSubName = mainNode["songsubname"];
-            buffer.authorName = mainNode["authname"];
-            buffer.beatsPerMinute = mainNode["bpm"];
-            buffer.coverUrl = mainNode["coverurl"];
-            buffer.downloadUrl = mainNode["downloadurl"];
-            buffer.hash = mainNode["songhash"];
-            buffer.requestedBy = mainNode["requestedby"];
+            Song buffer = new Song
+            {
+                id = mainNode["id"],
+                beatname = mainNode["beatname"],
+                songName = mainNode["songname"],
+                songSubName = mainNode["songsubname"],
+                authorName = mainNode["authname"],
+                beatsPerMinute = mainNode["bpm"],
+                coverUrl = mainNode["coverurl"],
+                downloadUrl = mainNode["downloadurl"],
+                hash = mainNode["songhash"],
+                requestedBy = mainNode["requestedby"]
+            };
 
             return buffer;
         }
