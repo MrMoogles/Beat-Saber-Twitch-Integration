@@ -17,10 +17,8 @@ namespace TwitchIntegrationPlugin.Commands
             string queryString = msg.Content.Remove(0, msg.Content.IndexOf(' ') + 1);
             bool isTextSearch = !_songIdrx.IsMatch(queryString);
 
-            Console.WriteLine(queryString);
-            Console.WriteLine(isTextSearch.ToString());
+            if (String.IsNullOrEmpty(queryString) && msg.Author.DisplayName.Equals("QueueBot")) return;
 
-            //QueuedSong request = ApiConnection.GetSongFromBeatSaver(isTextSearch, queryString, "banboi");
             SongDownloader.Instance.RequestSongByQuery(queryString, isTextSearch, msg.Author.DisplayName, request =>
             {
                 if (String.IsNullOrEmpty(request.hash) || String.IsNullOrEmpty(request.id))

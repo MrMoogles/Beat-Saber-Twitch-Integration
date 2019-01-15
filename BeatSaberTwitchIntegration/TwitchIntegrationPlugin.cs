@@ -9,7 +9,7 @@ namespace TwitchIntegrationPlugin
     public class TwitchIntegrationPlugin : IPlugin
     {
         public string Name => "Beat Saber Twitch Integration";
-        public string Version => "3.0.1";
+        public string Version => "3.0.2";
         private static BeatBotNew _bot;
         
         public void OnApplicationStart()

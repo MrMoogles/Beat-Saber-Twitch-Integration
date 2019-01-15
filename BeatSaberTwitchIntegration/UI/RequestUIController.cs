@@ -108,19 +108,12 @@ namespace TwitchIntegrationPlugin.UI
 
         private void RequestsButtonPressed()
         {
-            StaticData.SongQueue.SongQueueList.ForEach(x => {
-                if (x.level == null)
-                {
-                    x.level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.id)) || (string.IsNullOrEmpty(x.hash) ? false : y.levelID.StartsWith(x.hash)));
-                }
-            });
+            //foreach(Song s in StaticData.SongQueue.SongQueueList)
+            //{
+            //    Logger.Log("Song name: " + s.songName + ", Level Info: " + s.level.levelID);
+            //}
 
             SetLevels(_lastCharacteristic);
-
-            foreach(Song s in StaticData.SongQueue.SongQueueList)
-            {
-                Logger.Log(s.songName);
-            }
         }
 
         public void SetLevels(BeatmapCharacteristicSO characteristic)
@@ -128,7 +121,7 @@ namespace TwitchIntegrationPlugin.UI
             LevelSO[] levels = null;
             if (StaticData.SongQueue.SongQueueList != null)
             {
-                levels = StaticData.SongQueue.SongQueueList.Where(x => x.level != null && x.level.beatmapCharacteristics.Contains(characteristic)).Select(x => x.level).ToArray();
+                levels = StaticData.SongQueue.SongQueueList.Where(x => x.level != null).Select(x => x.level).ToArray();
             }
             else
             {

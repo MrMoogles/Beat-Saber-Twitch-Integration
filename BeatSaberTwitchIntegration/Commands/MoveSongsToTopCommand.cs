@@ -28,6 +28,7 @@ namespace TwitchIntegrationPlugin.Commands
             }
             else
             {
+                if (String.IsNullOrEmpty(queryString) && msg.Author.DisplayName.Equals("QueueBot")) return;
                 List<Song> temporaryList = new List<Song>();
                 List<Song> currentSongList = StaticData.SongQueue.GetSongList();
 

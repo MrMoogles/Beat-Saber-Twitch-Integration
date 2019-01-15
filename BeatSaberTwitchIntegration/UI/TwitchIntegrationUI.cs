@@ -54,6 +54,7 @@ namespace TwitchIntegrationPlugin.UI
             _internalTwitchMessage = new TwitchMessage();
             _internalTwitchMessage.Author.IsBroadcaster = true;
             _internalTwitchMessage.Author.IsMod = true;
+            _internalTwitchMessage.Author.DisplayName = "QueueBot";
         }
 
         [UsedImplicitly]
@@ -216,6 +217,17 @@ namespace TwitchIntegrationPlugin.UI
             _refreshButton.ToggleWordWrapping(false);
             _refreshButton.onClick.AddListener(delegate ()
             {
+                StaticData.SongQueue.SongQueueList.ForEach(x => {
+                    foreach (CustomLevel z in SongLoader.CustomLevels)
+                    {
+                        string customlvl = z.levelID.Substring(0, 32);
+                        if (x.hash.Equals(customlvl))
+                        {
+                            Logger.Log("Song: " + x.songName + "Hash Checks: [" + x.hash + "] [" + customlvl + "]");
+                            x.level = z;
+                        }
+                    }
+                });
                 SongLoader.Instance.RefreshSongs();
             });
         }
