@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using UnityEngine;
+using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.Serializables
 {
@@ -12,25 +13,30 @@ namespace TwitchIntegrationPlugin.Serializables
         public bool SubOnly;
         public int ViewerLimit;
         public int SubLimit;
+        public int ModLimit;
         public bool ContinueQueue;
         public bool Randomize;
         public int RandomizeLimit;
         public bool BlockMultiRandomQueue;
         public bool OverrideSongInMultiQueue;
         public bool EnableShadowQueue;
+        public bool AllowTwitchResponses;
+        public bool DisableModOverride;
 
-        public Config(bool modonly, bool subonly, int viewerlimit, int sublimit, bool continuequeue, bool randomize, int randomizelimit, bool blockMultiRandomQueue, bool overrideSongInMultiQueue, bool enableShadowQueue)
+        public Config(bool modonly, bool subonly, int viewerlimit, int sublimit, int modLimit, bool continuequeue, bool randomize, int randomizelimit, bool blockMultiRandomQueue, bool overrideSongInMultiQueue, bool enableShadowQueue, bool allowTwitchResponses, bool disableModOverride)
         {
             ModOnly = modonly;
             SubOnly = subonly;
             ViewerLimit = viewerlimit;
             SubLimit = sublimit;
+            ModLimit = modLimit;
             ContinueQueue = continuequeue;
             Randomize = randomize;
-            RandomizeLimit = randomizelimit;
             BlockMultiRandomQueue = blockMultiRandomQueue;
             OverrideSongInMultiQueue = overrideSongInMultiQueue;
             EnableShadowQueue = enableShadowQueue;
+            AllowTwitchResponses = allowTwitchResponses;
+            DisableModOverride = disableModOverride;
         }
 
         public void SaveJson()
@@ -52,6 +58,13 @@ namespace TwitchIntegrationPlugin.Serializables
                     fs.Read(loadBytes, 0, (int)fs.Length);
                     Config tempConfig = JsonUtility.FromJson<Config>(Encoding.UTF8.GetString(loadBytes));
 
+                    if (tempConfig.ModLimit == 0)
+                    {
+                        tempConfig.ModLimit = 5;
+                        tempConfig.DisableModOverride = false;
+                        tempConfig.AllowTwitchResponses = true;
+                    }
+
                     return tempConfig;
                 }
             }
@@ -62,7 +75,7 @@ namespace TwitchIntegrationPlugin.Serializables
 
         public static void CreateDefaultConfig()
         {
-            new Config(false, false, 1, 3, true, false, 3, false, false, false).SaveJson();
+            new Config(false, false, 1, 3, 5, true, false, 3, false, false, false, true, false).SaveJson();
         }
 
         public override string ToString()

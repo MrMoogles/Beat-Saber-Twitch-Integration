@@ -9,7 +9,8 @@ namespace TwitchIntegrationPlugin.Commands
         public override void Run(TwitchMessage msg)
         {
             StaticData.SongQueue.SaveSongQueue();
-            TwitchConnection.Instance.SendChatMessage("Saving Queue.");
+            if (StaticData.Config.AllowTwitchResponses)
+                TwitchConnection.Instance.SendChatMessage("Saving Queue.");
         }
     }
 }

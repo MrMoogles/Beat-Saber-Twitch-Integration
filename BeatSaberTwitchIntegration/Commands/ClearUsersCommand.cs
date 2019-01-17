@@ -15,7 +15,8 @@ namespace TwitchIntegrationPlugin.Commands
         {
             if (!msg.Author.IsMod && !msg.Author.IsBroadcaster) return;
             StaticData.UserPickedByRandomize.Clear();
-            TwitchConnection.Instance.SendChatMessage("All users cleared and can request songs.");
+            if (StaticData.Config.AllowTwitchResponses)
+                TwitchConnection.Instance.SendChatMessage("All users cleared and can request songs.");
         }
     }
 }

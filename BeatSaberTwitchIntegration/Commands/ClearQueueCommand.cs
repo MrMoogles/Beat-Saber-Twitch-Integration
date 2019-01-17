@@ -12,7 +12,11 @@ namespace TwitchIntegrationPlugin.Commands
             if (!msg.Author.IsMod && !msg.Author.IsBroadcaster) return;
             StaticData.SongQueue.SongQueueList = new List<Song>();
             StaticData.UserRequestCount = new Dictionary<string, int>();
-            TwitchConnection.Instance.SendChatMessage("Queue cleared!");
+            if (StaticData.Config.AllowTwitchResponses)
+                TwitchConnection.Instance.SendChatMessage("Queue cleared!");
+
+            if (StaticData.Config.ContinueQueue)
+                StaticData.SongQueue.SaveSongQueue();
         }
     }
 }

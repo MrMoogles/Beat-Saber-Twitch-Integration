@@ -52,6 +52,7 @@ namespace TwitchIntegrationPlugin
                 StaticData.SongQueue.SaveSongQueue();
 
             StaticData.BanList.SaveBanList();
+            StaticData.Config.SaveJson();
         }
 
         public void OnLevelWasLoaded(int level)

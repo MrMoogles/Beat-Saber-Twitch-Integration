@@ -25,7 +25,8 @@ namespace TwitchIntegrationPlugin.Commands
                 {
                     if (String.IsNullOrEmpty(request.hash) || String.IsNullOrEmpty(request.id))
                     {
-                        TwitchConnection.Instance.SendChatMessage("Could not locate song on beatsaver.");
+                        if (StaticData.Config.AllowTwitchResponses)
+                            TwitchConnection.Instance.SendChatMessage("Could not locate song on beatsaver.");
                         return;
                     }
                     for (int i = 0; i < StaticData.BanList.GetBanList().Count; i++)
@@ -33,7 +34,8 @@ namespace TwitchIntegrationPlugin.Commands
                         if (StaticData.BanList.IsBanned(request.id))
                         {
                             StaticData.BanList.GetBanList().RemoveAt(i);
-                            TwitchConnection.Instance.SendChatMessage("Removed \"" + request.songName + "\" from the banlist");
+                            if (StaticData.Config.AllowTwitchResponses)
+                                TwitchConnection.Instance.SendChatMessage("Removed \"" + request.songName + "\" from the banlist");
                         }
                     }
                 });                

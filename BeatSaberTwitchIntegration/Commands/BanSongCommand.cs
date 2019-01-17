@@ -23,19 +23,22 @@ namespace TwitchIntegrationPlugin.Commands
             {
                 if (String.IsNullOrEmpty(request.hash) || String.IsNullOrEmpty(request.id))
                 {
-                    TwitchConnection.Instance.SendChatMessage("Could not locate song on beatsaver.");
+                    if (StaticData.Config.AllowTwitchResponses)
+                        TwitchConnection.Instance.SendChatMessage("Could not locate song on beatsaver.");
                     return;
                 }
 
                 if (StaticData.BanList.IsBanned(request.id))
                 {
-                    TwitchConnection.Instance.SendChatMessage("Song is already banned.");
+                    if (StaticData.Config.AllowTwitchResponses)
+                        TwitchConnection.Instance.SendChatMessage("Song is already banned.");
                     return;
                 }
 
                 StaticData.BanList.AddToBanList(request.id);
                 StaticData.BanList.SaveBanList();
-                TwitchConnection.Instance.SendChatMessage($"\"{request.songName}\" was banned.");
+                if (StaticData.Config.AllowTwitchResponses)
+                    TwitchConnection.Instance.SendChatMessage($"\"{request.songName}\" was banned.");
             });
         }
     }

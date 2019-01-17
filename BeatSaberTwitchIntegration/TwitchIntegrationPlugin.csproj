@@ -58,6 +58,7 @@
     <Compile Include="Commands\PrintQueueCommand.cs" />
     <Compile Include="Commands\RandomizeCommand.cs" />
     <Compile Include="Commands\RemoveFromQueueCommand.cs" />
+    <Compile Include="Commands\ReplaceCommand.cs" />
     <Compile Include="Commands\SaveQueueCommand.cs" />
     <Compile Include="Commands\UnbanCommand.cs" />
     <Compile Include="Misc\Logger.cs" />

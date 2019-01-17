@@ -33,7 +33,8 @@ namespace TwitchIntegrationPlugin.Commands
                 StaticData.SongQueue.SongQueueList = new List<Song>();
                 StaticData.SongQueue.SongQueueList.AddRange(RandomizedList);
                 RandomizedList.Clear();
-                TwitchConnection.Instance.SendChatMessage(StaticData.Config.RandomizeLimit + " songs were randomly chosen from queue!");
+                if (StaticData.Config.AllowTwitchResponses)
+                    TwitchConnection.Instance.SendChatMessage(StaticData.Config.RandomizeLimit + " songs were randomly chosen from queue!");
 
                 PrintQueueCommand pqc = new PrintQueueCommand();
                 TwitchMessage queueMessage = new TwitchMessage

@@ -24,7 +24,8 @@ namespace TwitchIntegrationPlugin.Commands
             Song remSong = songList.FirstOrDefault(x => isTextSearch ? x.songName == queryString : x.id == queryString);
             StaticData.SongQueue.RemoveSongFromQueue(remSong);
 
-            TwitchConnection.Instance.SendChatMessage($"Song: {remSong.songName}, removed from queue");
+            if (StaticData.Config.AllowTwitchResponses)
+                TwitchConnection.Instance.SendChatMessage($"Song: {remSong.songName}, removed from queue");
         }
     }
 }

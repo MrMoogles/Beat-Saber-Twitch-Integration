@@ -1,4 +1,5 @@
 ﻿using AsyncTwitch;
+using TwitchIntegrationPlugin.Serializables;
 using Logger = TwitchIntegrationPlugin.Misc.Logger;
 
 namespace TwitchIntegrationPlugin.Commands
@@ -11,20 +12,34 @@ namespace TwitchIntegrationPlugin.Commands
             if (!msg.Author.IsMod && !msg.Author.IsBroadcaster) return;
             if (StaticData.SongQueue.GetSongList().Count >= 1)
             {
-                Serializables.Song song = StaticData.SongQueue.GetSongList()[0];
+                Song song = StaticData.SongQueue.SongQueueList[0];
                 StaticData.AlreadyPlayed.AddSongToQueue(song);
                 string remSong = song.songName;
                 StaticData.SongQueue.GetSongList().RemoveAt(0);
 
+                if (StaticData.UserRequestCount.ContainsKey(song.requestedBy))
+                    StaticData.UserRequestCount[song.requestedBy]--;
+
+                song = StaticData.SongQueue.SongQueueList[0];
+
                 if (StaticData.SongQueue.GetSongList().Count != 0)
                 {
-                    TwitchConnection.Instance.SendChatMessage("Removed \"" + remSong + "\" from the queue, next song is \"" + StaticData.SongQueue.GetSongList()[0].songName + "\" requested by " + song.requestedBy);
+                    if (StaticData.Config.AllowTwitchResponses)
+                        TwitchConnection.Instance.SendChatMessage("Removed \"" + remSong + "\" from the queue, next song is \"" + song.songName + "\" requested by " + song.requestedBy);
                 }
                 else
-                    TwitchConnection.Instance.SendChatMessage("Queue is now empty");
+                {
+                    if (StaticData.Config.AllowTwitchResponses)
+                        TwitchConnection.Instance.SendChatMessage("Queue is now empty");
+                }
+
+                if (StaticData.Config.ContinueQueue)
+                    StaticData.SongQueue.SaveSongQueue();
             }
             else
+            {if(StaticData.Config.AllowTwitchResponses)
                 TwitchConnection.Instance.SendChatMessage("BeatSaber queue was empty.");
+            }
         }
     }
 }

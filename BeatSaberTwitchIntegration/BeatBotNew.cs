@@ -19,11 +19,13 @@ namespace TwitchIntegrationPlugin
             StaticData.SongQueue.LoadSongQueue();
             //StaticData.SongQueue.CreatePlaylist();
             StaticData.BanList.LoadBanList("UserData/TwitchIntegrationBans.json");
+
             // Differs from normal Ban list in that only the owner can add songs for certain events
             // Doesn't actually display any messages in Chat
             if (StaticData.Config.EnableShadowQueue){
                 StaticData.ShadowBanList.LoadBanList("UserData/TwitchIntegrationShadowBans.json");
             }
+
             LoadCommandClasses();
             PrintConfigValuesToLog();
 
@@ -64,12 +66,14 @@ namespace TwitchIntegrationPlugin
             Logger.Log("Queue is Sub Only? " + StaticData.Config.SubOnly);
             Logger.Log("Viewer Request Limits: " + StaticData.Config.ViewerLimit);
             Logger.Log("Sub Request Limits: " + StaticData.Config.SubLimit);
+            Logger.Log("Moderator Request Limits: " + StaticData.Config.ModLimit);
             Logger.Log("Randomize Allowed? " + StaticData.Config.Randomize);
             Logger.Log("Randomize Request Limit: " + StaticData.Config.RandomizeLimit);
             Logger.Log("Request Multiple Random Queues already Chosen: " + StaticData.Config.BlockMultiRandomQueue);
             Logger.Log("Request Songs Already Played in Earlier Queues: " + StaticData.Config.OverrideSongInMultiQueue);
             Logger.Log("Shadow Queue Enabled? " + StaticData.Config.EnableShadowQueue);
-            Logger.Log("Disable Return Chat Messages: " + StaticData.Config.EnableShadowQueue);
+            Logger.Log("Disable Mod Override: " + StaticData.Config.DisableModOverride);
+            Logger.Log("Disable Return Chat Messages: " + StaticData.Config.AllowTwitchResponses);
         }
     }
 }

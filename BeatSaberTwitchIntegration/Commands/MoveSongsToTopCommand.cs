@@ -22,7 +22,8 @@ namespace TwitchIntegrationPlugin.Commands
                     {
                         StaticData.SongQueue.GetSongList().RemoveAt(i);
                         StaticData.SongQueue.GetSongList().Insert(0, song);
-                        TwitchConnection.Instance.SendChatMessage("Moved \"" + song.songName + "\" requested by " + song.requestedBy + " to top of queue.");
+                        if (StaticData.Config.AllowTwitchResponses)
+                            TwitchConnection.Instance.SendChatMessage("Moved \"" + song.songName + "\" requested by " + song.requestedBy + " to top of queue.");
                     }
                 }
             }
@@ -49,7 +50,8 @@ namespace TwitchIntegrationPlugin.Commands
                 StaticData.SongQueue.SongQueueList.AddRange(temporaryList);
                 temporaryList.Clear();
 
-                TwitchConnection.Instance.SendChatMessage("Moved all Non-Broadcaster Songs to top of queue.");
+                if (StaticData.Config.AllowTwitchResponses)
+                    TwitchConnection.Instance.SendChatMessage("Moved all Non-Broadcaster Songs to top of queue.");
             }
         }
     }
