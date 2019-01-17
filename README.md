@@ -55,14 +55,17 @@ Here are the options:
 |-----------------------------|----------------------------------------------------------------------------------------------------------------|
 | ModOnly                     | This allows only Moderators to add to the queue as well as perform any commands.                               |
 | SubOnly                     | This allows Moderators & Subscribers only to add to the queue.                                                 |
-| ViewerLimit                 | *Default: 1*, but this is the number of requests a user can have. Moderators don't have a limit.               |
-| SubLimit                    | *Default: 3*, but this is the number of requests a subscriber can have. Moderators don't have a limit.         |
+| ViewerLimit                 | *Default: 1*, but this is the number of requests a user can have.               |
+| SubLimit                    | *Default: 3*, but this is the number of requests a subscriber can have.         |
+| ModLimit                    | *Default: 5*, but this is the number of requests a moderator can have.          |
 | ContinueQueue               | *Default: false*, If set to true, requests will be kept track of.                                              |
 | Randomize                   | *Default: false*, This takes the current queue and chooses the randomize limit and creates a new queue.        |
 | RandomizeLimit              | Limit of songs chosen from current queue to recreate new randomized queue.                                     |
 | BlockUserMultiRandomQueue   | *Default: false*, If a user is chosen for the random queue, they won't be able to request again until cleared. |
 | OverrideSongInMultipleQueue | *Default: false*, If set to true, users can request songs already played as long as not currently in queue.    |
-| EnableShadowQueueButton     | *Default: false*, Not quite implemented yet... Ignore for now                                                  |
+| EnableShadowQueueButton     | *Default: false*, Basically a banlist that returns no responses in chat. (TwitchIntegrationShadowBans.json)                                                |
+| AllowTwitchResponses     | *Default: true*, Allows the bot to return responses for certain commands/situations                                       |
+| DisableModOverride     | *Default: false*, Mods no longer have the power to add when the queue is closed. |
 
 Example blacklist file. With new API changes, the format usually has both numbers with Hyphen, but can be blocked using just the first set.
 Similar setup in the shadow_blacklist.txt file.
@@ -77,9 +80,5 @@ Similar setup in the shadow_blacklist.txt file.
 
 Incoming Features:
 Implement Original Soundtrack for Requests
-Implement Shadow Ban list
-Implement Configuration option to return Chat messages when enabled
 Fix bug when it looks like SongDownloader didn't download last song in queue
 Add Refresh at the end of song when going back to the level select screen
-  
-I stream sometimes, catch me on twitch @ twitch.tv/mr_moogles :)
