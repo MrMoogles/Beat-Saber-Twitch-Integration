@@ -129,47 +129,6 @@ namespace TwitchIntegrationPlugin.UI
             }
 
             _levelListViewController.SetLevels(levels);
-            PopDifficultyAndDetails();
-        }
-
-        private void PopDifficultyAndDetails()
-        {
-            bool isSolo = (_freePlayFlowCoordinator is SoloFreePlayFlowCoordinator);
-
-            if (isSolo)
-            {
-                SoloFreePlayFlowCoordinator soloCoordinator = _freePlayFlowCoordinator as SoloFreePlayFlowCoordinator;
-                int controllers = 0;
-                if (soloCoordinator.GetPrivateField<BeatmapDifficultyViewController>("_beatmapDifficultyViewControllerViewController").isInViewControllerHierarchy)
-                {
-                    controllers++;
-                }
-                if (soloCoordinator.GetPrivateField<StandardLevelDetailViewController>("_levelDetailViewController").isInViewControllerHierarchy)
-                {
-                    controllers++;
-                }
-                if (controllers > 0)
-                {
-                    soloCoordinator.InvokePrivateMethod("PopViewControllersFromNavigationController", new object[] { soloCoordinator.GetPrivateField<DismissableNavigationController>("_navigationController"), controllers, null, false });
-                }
-            }
-            else
-            {
-                PartyFreePlayFlowCoordinator partyCoordinator = _freePlayFlowCoordinator as PartyFreePlayFlowCoordinator;
-                int controllers = 0;
-                if (partyCoordinator.GetPrivateField<BeatmapDifficultyViewController>("_beatmapDifficultyViewControllerViewController").isInViewControllerHierarchy)
-                {
-                    controllers++;
-                }
-                if (partyCoordinator.GetPrivateField<StandardLevelDetailViewController>("_levelDetailViewController").isInViewControllerHierarchy)
-                {
-                    controllers++;
-                }
-                if (controllers > 0)
-                {
-                    partyCoordinator.InvokePrivateMethod("PopViewControllersFromNavigationController", new object[] { partyCoordinator.GetPrivateField<DismissableNavigationController>("_navigationController"), controllers, null, false });
-                }
-            }
         }
     }
 }

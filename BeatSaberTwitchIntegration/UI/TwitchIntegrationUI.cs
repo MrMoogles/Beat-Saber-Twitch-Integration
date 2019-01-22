@@ -64,7 +64,7 @@ namespace TwitchIntegrationPlugin.UI
             {
                 DontDestroyOnLoad(this);
                 Instance = this;
-                SongLoader.SongsLoadedEvent += SongsLoaded;
+                //SongLoader.SongsLoadedEvent += SongsLoaded;
                 CreateUI();
             }
         }
@@ -91,7 +91,8 @@ namespace TwitchIntegrationPlugin.UI
                 CreateTwitchButton();
                 CreateSubMenuItems();
 
-                _twitchButton.interactable = SongLoader.AreSongsLoaded;
+                // Disabling since I guess we don't really care if songs are loaded or not on initialization
+                //_twitchButton.interactable = SongLoader.AreSongsLoaded;
             }
             catch (Exception e)
             {
@@ -220,6 +221,7 @@ namespace TwitchIntegrationPlugin.UI
                 StaticData.SongQueue.SongQueueList.ForEach(x => {
                     foreach (CustomLevel z in SongLoader.CustomLevels)
                     {
+                        Logger.Log("Custom Level Data: " + z);
                         string customlvl = z.levelID.Substring(0, 32);
                         if (x.hash.Equals(customlvl))
                         {
