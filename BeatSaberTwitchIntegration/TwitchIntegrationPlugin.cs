@@ -9,7 +9,7 @@ namespace TwitchIntegrationPlugin
     public class TwitchIntegrationPlugin : IPlugin
     {
         public string Name => "Beat Saber Twitch Integration";
-        public string Version => "3.0.4";
+        public string Version => "3.0.5";
         private static BeatBotNew _bot;
         
         public void OnApplicationStart()
@@ -31,6 +31,8 @@ namespace TwitchIntegrationPlugin
                 {
                     Logger.Log("Start Loading UI Objects");
                     RequestUIController.Instance.OnLoad();
+                    TwitchIntegrationUi.OnLoad();
+
                 }
                 catch (Exception e)
                 {
@@ -44,7 +46,6 @@ namespace TwitchIntegrationPlugin
             try
             {
                 Logger.Log($"Loaded scene \"{scene.name}\"");
-                TwitchIntegrationUi.OnLoad();
             }
             catch (Exception e)
             {
