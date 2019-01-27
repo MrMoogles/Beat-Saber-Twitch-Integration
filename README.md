@@ -84,5 +84,5 @@ Fix bug when it looks like SongDownloader didn't download last song in queue
 Add Refresh at the end of song when going back to the level select screen
 
 ## Commonly Asked Questions
-*Q:* Why don't I see any requests from my viewers showing up after opening up the Requests tab.
+*Q:* Why don't I see any requests from my viewers showing up after opening up the Requests tab.  
 *A:* Currently a small issue with having the list refresh before the song Download finishes, workaround is to reclick the requests button to refresh the song list.
