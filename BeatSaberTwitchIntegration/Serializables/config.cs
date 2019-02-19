@@ -68,14 +68,17 @@ namespace TwitchIntegrationPlugin.Serializables
                     return tempConfig;
                 }
             }
-
-            CreateDefaultConfig();
-            return null;
+            else
+            {
+                Config tempConfig = CreateDefaultConfig();
+                tempConfig.SaveJson();
+                return tempConfig;
+            }
         }
 
-        public static void CreateDefaultConfig()
+        public static Config CreateDefaultConfig()
         {
-            new Config(false, false, 1, 3, 5, true, false, 3, false, false, false, true, false).SaveJson();
+            return new Config(false, false, 1, 3, 5, true, false, 3, false, false, false, true, false);
         }
 
         public override string ToString()
